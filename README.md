@@ -22,6 +22,38 @@ Petasos is a Tauri v2 + React desktop/mobile client that observes and steers a f
 - Docker + Docker Compose
 - Platform deps for Tauri: see [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/)
 
+### Ubuntu / WSL2 (desktop shell)
+
+`npm run tauri:dev` needs WebKitGTK development packages. Runtime GTK alone is not enough.
+
+```bash
+sudo apt update
+sudo apt install -y \
+  libwebkit2gtk-4.1-dev \
+  build-essential \
+  curl wget file \
+  libxdo-dev \
+  libssl-dev \
+  libayatana-appindicator3-dev \
+  librsvg2-dev \
+  libglib2.0-dev \
+  pkg-config
+```
+
+If `glib-sys` still fails, confirm:
+
+```bash
+pkg-config --modversion glib-2.0
+pkg-config --modversion webkit2gtk-4.1
+```
+
+Frontend-only work does not need these packages:
+
+```bash
+npm run sandbox:init
+npm run dev
+```
+
 ## Quick start
 
 ```bash
