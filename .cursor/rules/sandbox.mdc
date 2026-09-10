@@ -1,0 +1,13 @@
+---
+description: Docker sandbox conventions
+globs: sandbox/**
+alwaysApply: false
+---
+
+# Sandbox
+
+- Keep the stack self-contained: Ollama + Hermes only.
+- Hermes must bind `API_SERVER_HOST=0.0.0.0` inside Compose.
+- Init/reset scripts must be idempotent and non-interactive (no required TTY).
+- Never commit `sandbox-data/` contents.
+- Document env/key/port changes in `docs/sandbox.md` and the README.

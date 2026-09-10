@@ -1,0 +1,14 @@
+---
+description: TypeScript and service-layer standards
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# TypeScript
+
+- Strict typing; avoid `any`.
+- Put shared domain types in `src/types`.
+- Put HTTP/SSE I/O in `src/services`; keep React components free of raw `fetch`.
+- Use Zustand stores for shared mutable UI state.
+- Prefer named exports except for page/app entry components.
+- Handle errors with typed/domain errors when crossing service boundaries.

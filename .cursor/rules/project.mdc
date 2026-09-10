@@ -1,0 +1,14 @@
+---
+description: Core Petasos project conventions
+alwaysApply: true
+---
+
+# Petasos Core
+
+- English only for code, docs, UI copy, commits, and PR text.
+- No inline comments. Prefer clear names and small modules.
+- Keep files focused; split stores, services, and UI by feature.
+- Update `README.md` and `docs/` when behavior or setup changes.
+- Update `.cursor/rules/` when conventions change.
+- Do not commit secrets, `.env`, or `sandbox/sandbox-data/`.
+- Prefer iterative commits with a clear why over large mixed dumps.

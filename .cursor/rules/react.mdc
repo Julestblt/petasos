@@ -1,0 +1,14 @@
+---
+description: React UI and design system conventions
+globs: src/components/**/*.{ts,tsx},src/views/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# React & UI
+
+- Functional components only.
+- Compose from `src/components/ui` primitives before inventing new base controls.
+- Keep views thin; put orchestration in hooks/stores.
+- Dark slate/zinc Mission Control look; avoid purple-gradient or generic AI aesthetics.
+- One job per panel/section.
+- Markdown rendering belongs in dedicated message components.
