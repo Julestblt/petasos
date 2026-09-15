@@ -1,5 +1,4 @@
 import {
-  DEFAULT_MODEL,
   HERMES_API_KEY,
   OLLAMA_BASE_URL,
   PROBE_OLLAMA,
@@ -13,6 +12,8 @@ import type {
   HealthSnapshot,
   HermesCapabilities,
   HermesRun,
+  HermesSession,
+  HermesSessionMessage,
   TimelineEvent,
   TimelineEventKind,
 } from '@/types/hermes'
@@ -45,7 +46,9 @@ function createId(prefix: string): string {
 
 function authHeaders(apiKey: string, extra?: HeadersInit): Headers {
   const headers = new Headers(extra)
-  headers.set('Authorization', `Bearer ${apiKey}`)
+  if (apiKey) {
+    headers.set('Authorization', `Bearer ${apiKey}`)
+  }
   headers.set('Accept', 'application/json')
   return headers
 }
@@ -203,11 +206,31 @@ export class HermesClient {
   async createRun(body: CreateRunRequest): Promise<CreateRunResponse> {
     return this.requestJson<CreateRunResponse>('/v1/runs', {
       method: 'POST',
-      body: JSON.stringify({
-        model: DEFAULT_MODEL,
-        ...body,
-      }),
+      body: JSON.stringify(body),
     })
+  }
+
+  async createSession(title?: string): Promise<HermesSession> {
+    const payload = await this.requestJson<{ session?: HermesSession }>('/api/sessions', {
+      method: 'POST',
+      body: JSON.stringify(title ? { title } : {}),
+    })
+    if (!payload.session?.id) {
+      throw new HermesClientError('Hermes did not return a session id')
+    }
+    return payload.session
+  }
+
+  async listSessions(): Promise<HermesSession[]> {
+    const payload = await this.requestJson<{ sessions?: HermesSession[] }>('/api/sessions')
+    return payload.sessions ?? []
+  }
+
+  async getSessionMessages(sessionId: string): Promise<HermesSessionMessage[]> {
+    const payload = await this.requestJson<{ messages?: HermesSessionMessage[] }>(
+      `/api/sessions/${encodeURIComponent(sessionId)}/messages`,
+    )
+    return payload.messages ?? []
   }
 
   async getRun(runId: string): Promise<HermesRun> {

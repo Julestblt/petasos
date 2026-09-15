@@ -1,8 +1,9 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { ChatMessage } from '@/types/hermes'
 
 interface ChatStore {
-  sessionId: string
+  sessionId?: string
   messages: ChatMessage[]
   activeRunId?: string
   isSending: boolean
@@ -10,16 +11,12 @@ interface ChatStore {
   appendAssistantDelta: (messageId: string, delta: string) => void
   finalizeAssistant: (messageId: string, content?: string) => void
   setActiveRunId: (runId?: string) => void
+  setSessionId: (sessionId?: string) => void
   setSending: (value: boolean) => void
   clear: () => void
 }
 
-function createSessionId(): string {
-  return `petasos_${crypto.randomUUID()}`
-}
-
-export const useChatStore = create<ChatStore>((set) => ({
-  sessionId: createSessionId(),
+export const useChatStore = create<ChatStore>()(persist((set) => ({
   messages: [],
   isSending: false,
   addMessage: (message) =>
@@ -45,12 +42,19 @@ export const useChatStore = create<ChatStore>((set) => ({
       ),
     })),
   setActiveRunId: (runId) => set({ activeRunId: runId }),
+  setSessionId: (sessionId) => set({ sessionId }),
   setSending: (value) => set({ isSending: value }),
   clear: () =>
     set({
-      sessionId: createSessionId(),
+      sessionId: undefined,
       messages: [],
       activeRunId: undefined,
       isSending: false,
     }),
+}), {
+  name: 'petasos-chat',
+  partialize: (state) => ({
+    sessionId: state.sessionId,
+    messages: state.messages,
+  }),
 }))

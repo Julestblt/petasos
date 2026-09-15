@@ -16,7 +16,7 @@ function extractDelta(event: TimelineEvent): string | undefined {
 }
 
 export async function startRunWithStream(input: string): Promise<string> {
-  const sessionId = useChatStore.getState().sessionId
+  let sessionId = useChatStore.getState().sessionId
   const assistantId = `msg_${crypto.randomUUID()}`
   const userId = `msg_${crypto.randomUUID()}`
 
@@ -38,6 +38,12 @@ export async function startRunWithStream(input: string): Promise<string> {
   useChatStore.getState().setSending(true)
 
   try {
+    if (!sessionId) {
+      const session = await hermesClient.createSession(input.slice(0, 80))
+      sessionId = session.id
+      useChatStore.getState().setSessionId(sessionId)
+    }
+
     const run = await hermesClient.createRun({
       input,
       session_id: sessionId,

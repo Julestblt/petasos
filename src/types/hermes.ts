@@ -36,12 +36,34 @@ export interface HermesRun {
   }
 }
 
+export interface HermesSession {
+  id: string
+  title?: string | null
+  model?: string | null
+  started_at?: number
+  message_count?: number
+  input_tokens?: number
+  output_tokens?: number
+  estimated_cost_usd?: number | null
+  actual_cost_usd?: number | null
+}
+
+export interface HermesSessionMessage {
+  id?: string
+  role: ChatRole
+  content: string
+  created_at?: string
+}
+
 export interface CreateRunRequest {
   input: string
   session_id?: string
   instructions?: string
   conversation_history?: Array<{ role: string; content: string }>
   previous_response_id?: string
+  model?: string
+  provider?: string
+  model_options?: Record<string, unknown>
 }
 
 export interface CreateRunResponse {

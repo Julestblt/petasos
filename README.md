@@ -165,8 +165,7 @@ docs/                Architecture notes
 Copy `.env.example` to `.env` to override defaults:
 
 - `VITE_HERMES_BASE_URL` — local gateway or Tailscale HTTPS URL
-- `VITE_HERMES_API_KEY` — Hermes `API_SERVER_KEY`
-- `VITE_HERMES_MODEL` — model id advertised by Hermes (e.g. `hermes-homelab`)
+- `VITE_HERMES_API_KEY` — local sandbox key only; never set it in a browser-facing remote build
 - `VITE_OPERATOR_NAME` / `VITE_OPERATOR_ROLE` — sidebar identity (default Jules / humain)
 - `VITE_OLLAMA_BASE_URL` — optional; set only when probing a local Ollama instance
 - `VITE_HOST_METRICS_URL` — optional JSON host metrics API for CPU/RAM/disk
@@ -174,12 +173,14 @@ Copy `.env.example` to `.env` to override defaults:
 Remote Hermes example:
 
 ```bash
-VITE_HERMES_BASE_URL=https://homelab.tail042a16.ts.net
-VITE_HERMES_API_KEY=your-key
-VITE_HERMES_MODEL=hermes-homelab
+VITE_HERMES_BASE_URL=https://homelab.tail042a16.ts.net:8445
 VITE_OPERATOR_NAME=Jules
 VITE_OPERATOR_ROLE=humain
 ```
+
+The remote URL is the Petasos proxy, not Hermes directly. It uses Tailscale identity headers and keeps the Hermes API key on the homelab. Do not expose `VITE_HERMES_API_KEY`, Glances credentials, Codex exporter tokens, or provider keys in a web build.
+
+For remote model selection, fetch `GET /petasos/model-policy` from the proxy. It advertises the only accepted modes: `auto`, `admin` (DeepSeek V4.1 Flash), and `dev` (Codex Terra). The proxy enforces this policy for run and session-chat requests.
 
 Leave `VITE_OLLAMA_BASE_URL` unset for remote mode. `npm run sandbox:init` is only needed for the local Docker stack.
 

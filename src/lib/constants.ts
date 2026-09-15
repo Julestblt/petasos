@@ -4,10 +4,7 @@ export const HERMES_BASE_URL =
 export const OLLAMA_BASE_URL = (import.meta.env.VITE_OLLAMA_BASE_URL ?? '').trim()
 
 export const HERMES_API_KEY =
-  import.meta.env.VITE_HERMES_API_KEY ?? 'petasos-local-dev-token'
-
-export const DEFAULT_MODEL =
-  import.meta.env.VITE_HERMES_MODEL ?? 'hermes-agent'
+  (import.meta.env.VITE_HERMES_API_KEY ?? '').trim()
 
 export const HOST_METRICS_URL = (import.meta.env.VITE_HOST_METRICS_URL ?? '').trim()
 

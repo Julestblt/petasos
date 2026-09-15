@@ -12,8 +12,14 @@ Petasos is a thin observability client. Hermes does the agent work inside Docker
                │ REST + SSE
                ▼
 ┌────────────────────────────┐
+│ Petasos proxy              │
+│ local :8643 or Tailscale   │
+└──────────────┬─────────────┘
+               │ authenticated local REST + SSE
+               ▼
+┌────────────────────────────┐
 │ Hermes gateway             │
-│ local :8642 or Tailscale   │
+│ local :8642                │
 └──────────────┬─────────────┘
                │ model backend (homelab-managed)
                ▼
@@ -49,6 +55,8 @@ Primary control plane:
 
 The client maps SSE payloads into timeline events and optional token deltas for the assistant bubble.
 
+In remote mode, the Petasos proxy authenticates the Tailscale identity, injects the Hermes API key, enforces the model policy, and exposes `GET /petasos/model-policy`. The SPA never receives the Hermes key.
+
 ## Tauri boundary
 
 `src-tauri/capabilities/default.json` scopes HTTP to local Hermes/Ollama URLs and Tailscale `*.ts.net` hosts. Browser Vite dev proxies Hermes via `/__hermes` when CORS is disabled on the gateway. Future iterations can add filesystem scope for `sandbox/sandbox-data/hermes/skills`.
@@ -58,7 +66,7 @@ The client maps SSE payloads into timeline events and optional token deltas for 
 | Mode | Hermes URL | Ollama probe |
 | --- | --- | --- |
 | Local sandbox | `http://127.0.0.1:8642` | optional via `VITE_OLLAMA_BASE_URL` |
-| Tailscale / remote | `https://…ts.net` | skipped; model status from `/v1/models` |
+| Tailscale / remote | `https://…ts.net:8445` Petasos proxy | skipped; model status from `/v1/models` |
 ## Design principles
 
 - English-only source and docs
