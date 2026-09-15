@@ -12,7 +12,32 @@ export default defineConfig(({ mode }) => {
     /\/$/,
     '',
   )
-  const metricsTarget = (env.VITE_HOST_METRICS_URL || '').replace(/\/$/, '')
+  const metricsConfigured = (env.VITE_HOST_METRICS_URL || '').trim()
+
+  let metricsProxy:
+    | {
+        target: string
+        changeOrigin: boolean
+        secure: boolean
+        rewrite: (requestPath: string) => string
+      }
+    | undefined
+
+  if (metricsConfigured) {
+    try {
+      const metricsUrl = new URL(metricsConfigured)
+      const metricsPath = metricsUrl.pathname.replace(/\/$/, '') || ''
+      metricsProxy = {
+        target: metricsUrl.origin,
+        changeOrigin: true,
+        secure: true,
+        rewrite: (requestPath: string) =>
+          requestPath.replace(/^\/__metrics/, metricsPath),
+      }
+    } catch {
+      metricsProxy = undefined
+    }
+  }
 
   return {
     plugins: [react(), tailwindcss()],
@@ -32,17 +57,7 @@ export default defineConfig(({ mode }) => {
           secure: true,
           rewrite: (requestPath) => requestPath.replace(/^\/__hermes/, ''),
         },
-        ...(metricsTarget
-          ? {
-              '/__metrics': {
-                target: metricsTarget,
-                changeOrigin: true,
-                secure: true,
-                rewrite: (requestPath: string) =>
-                  requestPath.replace(/^\/__metrics/, ''),
-              },
-            }
-          : {}),
+        ...(metricsProxy ? { '/__metrics': metricsProxy } : {}),
       },
     },
     envPrefix: ['VITE_', 'TAURI_'],

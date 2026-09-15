@@ -7,36 +7,66 @@ Petasos can show CPU / RAM / disk for the Hermes host in the sidebar.
 `GET /health/detailed` includes disk usage (`readiness.checks.disk.used_percent`).
 It does **not** expose host CPU or RAM.
 
-## Recommended service
+## Recommended: Glances
 
-Expose a tiny JSON endpoint on the host (or behind the same Tailscale URL), for example:
+[Glances](https://nicolargo.github.io/glances/) exposes JSON REST metrics.
+
+### Homelab (Tailscale)
+
+Current private endpoint:
+
+```text
+https://homelab.tail042a16.ts.net:8443/api/4
+```
+
+Auth:
+
+1. Prefer JWT
 
 ```http
-GET /metrics/host
+POST /api/4/token
+Content-Type: application/json
+
+{"username":"cockpit","password":"…"}
 ```
 
-```json
-{
-  "name": "homelab",
-  "online": true,
-  "cpuPercent": 29,
-  "ramUsedGb": 12,
-  "ramTotalGb": 64,
-  "diskPercent": 56,
-  updatedAt": "2026-09-15T20:00:00.000Z"
-}
+Then:
+
+```http
+Authorization: Bearer <token>
 ```
 
-Point Petasos at it:
+2. Fallback: HTTP Basic Auth with the same credentials
+
+Petasos does JWT first, caches the token, refreshes on `401`, and falls back to Basic Auth.
+
+### Petasos `.env`
 
 ```bash
-VITE_HOST_METRICS_URL=https://homelab.tail042a16.ts.net/metrics/host
+VITE_HOST_METRICS_URL=https://homelab.tail042a16.ts.net:8443/api/4
+VITE_HOST_METRICS_USERNAME=cockpit
+VITE_HOST_METRICS_PASSWORD=…
 ```
 
-Without that URL, Petasos falls back to Hermes disk only and shows CPU/RAM as unavailable.
+Useful endpoints:
 
-## Implementation options
+| Path | Data |
+| --- | --- |
+| `GET /cpu` | `total` CPU % |
+| `GET /mem` | `used` / `total` bytes |
+| `GET /fs` | filesystem `%` |
+| `GET /system` | hostname |
 
-- Small Go/Python sidecar next to Hermes reading `/proc` + disk stats
-- `node_exporter` + a thin JSON adapter
-- Existing monitoring stack (Netdata / Glances) with a custom JSON route
+### Security note
+
+`VITE_*` values are embedded in the frontend bundle. This is acceptable for a private Tailscale + local desktop client, but do not publish the built web assets publicly with these secrets.
+
+## Alternatives
+
+| Service | Format | Notes |
+| --- | --- | --- |
+| **Glances** | JSON REST + auth | Best fit for Petasos today |
+| **Netdata** | JSON | Richer, heavier |
+| **node_exporter** | Prometheus text | Needs an adapter |
+
+Without `VITE_HOST_METRICS_URL`, Petasos falls back to Hermes disk only.

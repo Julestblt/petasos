@@ -5,6 +5,7 @@ import {
   resolveHostMetricsUrl,
 } from '@/lib/constants'
 import { createHttpFetch } from '@/lib/http'
+import { glancesFetch } from '@/services/glancesAuth'
 import type { HostMetrics } from '@/types/metrics'
 
 function emptyMetrics(detail: string): HostMetrics {
@@ -20,6 +21,19 @@ function emptyMetrics(detail: string): HostMetrics {
     updatedAt: new Date().toISOString(),
     detail,
   }
+}
+
+function bytesToGb(value: number): number {
+  return value / 1024 ** 3
+}
+
+function isGlancesApiUrl(url: string): boolean {
+  return (
+    url === '/__metrics' ||
+    /\/api\/\d+\/?$/.test(url) ||
+    url.includes('/api/4') ||
+    url.includes('/api/3')
+  )
 }
 
 function normalizePayload(payload: Record<string, unknown>): HostMetrics {
@@ -63,7 +77,64 @@ function normalizePayload(payload: Record<string, unknown>): HostMetrics {
   }
 }
 
+function pickRootFs(entries: unknown): number | null {
+  if (!Array.isArray(entries) || entries.length === 0) return null
+
+  const typed = entries as Array<{
+    mnt_point?: string
+    percent?: number
+    size?: number
+  }>
+
+  const preferred =
+    typed.find((item) => item.mnt_point === '/') ??
+    typed.find((item) => item.mnt_point === '/home') ??
+    [...typed].sort((a, b) => (b.size ?? 0) - (a.size ?? 0))[0]
+
+  return typeof preferred?.percent === 'number' ? preferred.percent : null
+}
+
+async function fetchFromGlances(): Promise<HostMetrics> {
+  const [cpuRes, memRes, fsRes, systemRes] = await Promise.all([
+    glancesFetch('/cpu'),
+    glancesFetch('/mem'),
+    glancesFetch('/fs'),
+    glancesFetch('/system'),
+  ])
+
+  if (!cpuRes.ok || !memRes.ok) {
+    throw new Error(`Glances HTTP cpu=${cpuRes.status} mem=${memRes.status}`)
+  }
+
+  const cpu = (await cpuRes.json()) as { total?: number }
+  const mem = (await memRes.json()) as {
+    used?: number
+    total?: number
+  }
+  const fs = fsRes.ok ? ((await fsRes.json()) as unknown) : []
+  const system = systemRes.ok
+    ? ((await systemRes.json()) as { hostname?: string })
+    : {}
+
+  return {
+    id: 'glances',
+    name: system.hostname ?? hostLabelFromHermesUrl(),
+    online: true,
+    cpuPercent: typeof cpu.total === 'number' ? cpu.total : null,
+    ramUsedGb: typeof mem.used === 'number' ? bytesToGb(mem.used) : null,
+    ramTotalGb: typeof mem.total === 'number' ? bytesToGb(mem.total) : null,
+    diskPercent: pickRootFs(fs),
+    source: 'metrics-api',
+    updatedAt: new Date().toISOString(),
+    detail: 'Glances',
+  }
+}
+
 async function fetchFromMetricsApi(url: string): Promise<HostMetrics> {
+  if (isGlancesApiUrl(url)) {
+    return fetchFromGlances()
+  }
+
   const fetchImpl = createHttpFetch()
   const response = await fetchImpl(url, {
     method: 'GET',
@@ -118,7 +189,7 @@ async function fetchPartialFromHermes(): Promise<HostMetrics> {
     diskPercent,
     source: 'hermes-partial',
     updatedAt: new Date().toISOString(),
-    detail: 'Disk from Hermes · CPU/RAM need metrics API',
+    detail: 'Disk from Hermes · run Glances for CPU/RAM',
   }
 }
 

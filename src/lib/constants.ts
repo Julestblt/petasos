@@ -11,6 +11,14 @@ export const DEFAULT_MODEL =
 
 export const HOST_METRICS_URL = (import.meta.env.VITE_HOST_METRICS_URL ?? '').trim()
 
+export const HOST_METRICS_USERNAME = (
+  import.meta.env.VITE_HOST_METRICS_USERNAME ?? ''
+).trim()
+
+export const HOST_METRICS_PASSWORD = (
+  import.meta.env.VITE_HOST_METRICS_PASSWORD ?? ''
+).trim()
+
 export const OPERATOR_NAME = import.meta.env.VITE_OPERATOR_NAME ?? 'Jules'
 export const OPERATOR_ROLE = import.meta.env.VITE_OPERATOR_ROLE ?? 'humain'
 
