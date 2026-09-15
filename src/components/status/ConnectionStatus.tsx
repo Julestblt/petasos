@@ -1,13 +1,7 @@
+import type { ReactNode } from 'react'
 import { RefreshCw, Server, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import {
   HERMES_BASE_URL,
   OLLAMA_BASE_URL,
@@ -30,19 +24,6 @@ function labelFor(state: ConnectionState): string {
   }
 }
 
-function tone(state: ConnectionState): string {
-  switch (state) {
-    case 'online':
-      return 'border-emerald-500/30 text-emerald-300'
-    case 'degraded':
-      return 'border-amber-500/30 text-amber-300'
-    case 'offline':
-      return 'border-rose-500/30 text-rose-300'
-    default:
-      return 'border-border text-muted-foreground'
-  }
-}
-
 export function ConnectionStatus() {
   const hermes = useConnectionStore((state) => state.hermes)
   const llm = useConnectionStore((state) => state.llm)
@@ -53,51 +34,29 @@ export function ConnectionStatus() {
   const refresh = useConnectionStore((state) => state.refresh)
 
   return (
-    <div className="mx-auto flex h-full max-w-4xl flex-col gap-6 overflow-auto p-6">
+    <div className="mx-auto flex h-full max-w-3xl flex-col gap-8 overflow-auto p-8">
       <div className="space-y-2">
-        <h1 className="font-display text-3xl tracking-tight">Connection</h1>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          Verify the Hermes gateway before opening the console.
-          {PROBE_OLLAMA
-            ? ' Local Ollama probing is enabled.'
-            : ' Model availability is read from Hermes `/v1/models`.'}
+        <h1 className="font-display text-3xl tracking-[-0.04em]">Connection</h1>
+        <p className="max-w-xl text-sm text-muted-foreground">
+          Gateway and model readiness for the linked Hermes instance.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Server className="h-4 w-4 text-muted-foreground" />
-                <CardTitle>Hermes Gateway</CardTitle>
-              </div>
-              <Badge className={cn(tone(hermes))}>{labelFor(hermes)}</Badge>
-            </div>
-            <CardDescription className="break-all">{HERMES_BASE_URL}</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            {hermesDetail ?? 'Waiting for first probe…'}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-muted-foreground" />
-                <CardTitle>{PROBE_OLLAMA ? 'Local LLM' : 'Model'}</CardTitle>
-              </div>
-              <Badge className={cn(tone(llm))}>{labelFor(llm)}</Badge>
-            </div>
-            <CardDescription className="break-all">
-              {PROBE_OLLAMA ? OLLAMA_BASE_URL : 'via Hermes API'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            {llmDetail ?? 'Waiting for first probe…'}
-          </CardContent>
-        </Card>
+      <div className="divide-y divide-border border border-border">
+        <StatusRow
+          icon={<Server className="h-4 w-4" />}
+          title="Hermes"
+          subtitle={HERMES_BASE_URL}
+          state={hermes}
+          detail={hermesDetail}
+        />
+        <StatusRow
+          icon={<Sparkles className="h-4 w-4" />}
+          title={PROBE_OLLAMA ? 'Local LLM' : 'Model'}
+          subtitle={PROBE_OLLAMA ? OLLAMA_BASE_URL : 'via Hermes API'}
+          state={llm}
+          detail={llmDetail}
+        />
       </div>
 
       <div className="flex items-center gap-3">
@@ -109,6 +68,46 @@ export function ConnectionStatus() {
           {checkedAt ? `Checked ${formatRelativeTime(checkedAt)}` : 'Not checked yet'}
         </span>
       </div>
+    </div>
+  )
+}
+
+function StatusRow({
+  icon,
+  title,
+  subtitle,
+  state,
+  detail,
+}: {
+  icon: ReactNode
+  title: string
+  subtitle: string
+  state: ConnectionState
+  detail?: string
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 bg-card/40 px-5 py-4">
+      <div className="min-w-0 space-y-1">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <span className="text-muted-foreground">{icon}</span>
+          {title}
+        </div>
+        <div className="truncate text-xs text-muted-foreground">{subtitle}</div>
+        <div className="text-sm text-muted-foreground">
+          {detail ?? 'Waiting for first probe…'}
+        </div>
+      </div>
+      <Badge
+        className={cn(
+          'shrink-0 rounded-none border-border',
+          state === 'online' && 'bg-foreground text-background',
+          state === 'degraded' && 'bg-transparent text-foreground',
+          state === 'offline' && 'bg-transparent text-muted-foreground',
+          state === 'unknown' && 'bg-transparent text-muted-foreground',
+        )}
+      >
+        {labelFor(state)}
+      </Badge>
     </div>
   )
 }

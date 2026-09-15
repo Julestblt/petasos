@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
     /\/$/,
     '',
   )
+  const metricsTarget = (env.VITE_HOST_METRICS_URL || '').replace(/\/$/, '')
 
   return {
     plugins: [react(), tailwindcss()],
@@ -31,6 +32,17 @@ export default defineConfig(({ mode }) => {
           secure: true,
           rewrite: (requestPath) => requestPath.replace(/^\/__hermes/, ''),
         },
+        ...(metricsTarget
+          ? {
+              '/__metrics': {
+                target: metricsTarget,
+                changeOrigin: true,
+                secure: true,
+                rewrite: (requestPath: string) =>
+                  requestPath.replace(/^\/__metrics/, ''),
+              },
+            }
+          : {}),
       },
     },
     envPrefix: ['VITE_', 'TAURI_'],

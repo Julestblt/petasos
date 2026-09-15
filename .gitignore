@@ -36,3 +36,4 @@ sandbox/sandbox-data/
 .turbo
 coverage
 *.tsbuildinfo
+.venv/

@@ -167,7 +167,9 @@ Copy `.env.example` to `.env` to override defaults:
 - `VITE_HERMES_BASE_URL` — local gateway or Tailscale HTTPS URL
 - `VITE_HERMES_API_KEY` — Hermes `API_SERVER_KEY`
 - `VITE_HERMES_MODEL` — model id advertised by Hermes (e.g. `hermes-homelab`)
+- `VITE_OPERATOR_NAME` / `VITE_OPERATOR_ROLE` — sidebar identity (default Jules / humain)
 - `VITE_OLLAMA_BASE_URL` — optional; set only when probing a local Ollama instance
+- `VITE_HOST_METRICS_URL` — optional JSON host metrics API for CPU/RAM/disk
 
 Remote Hermes example:
 
@@ -175,9 +177,13 @@ Remote Hermes example:
 VITE_HERMES_BASE_URL=https://homelab.tail042a16.ts.net
 VITE_HERMES_API_KEY=your-key
 VITE_HERMES_MODEL=hermes-homelab
+VITE_OPERATOR_NAME=Jules
+VITE_OPERATOR_ROLE=humain
 ```
 
 Leave `VITE_OLLAMA_BASE_URL` unset for remote mode. `npm run sandbox:init` is only needed for the local Docker stack.
+
+Without `VITE_HOST_METRICS_URL`, the sidebar shows Hermes disk when available and leaves CPU/RAM empty. See [Host metrics](docs/host-metrics.md).
 
 Browser `npm run dev` proxies Hermes through `/__hermes` to avoid CORS. Tauri uses the HTTP plugin with scoped HTTPS permissions.
 
@@ -185,6 +191,7 @@ Browser `npm run dev` proxies Hermes through `/__hermes` to avoid CORS. Tauri us
 
 - [Architecture](docs/architecture.md)
 - [Sandbox operations](docs/sandbox.md)
+- [Host metrics](docs/host-metrics.md)
 
 ## License
 

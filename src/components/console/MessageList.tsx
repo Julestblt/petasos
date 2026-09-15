@@ -10,11 +10,10 @@ export function MessageList({ messages }: { messages: ChatMessage[] }) {
     <ScrollArea className="h-full">
       <div className="mx-auto flex max-w-3xl flex-col gap-4 px-5 py-6">
         {messages.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border/80 px-6 py-16 text-center">
-            <div className="font-display text-2xl tracking-tight">Console</div>
+          <div className="border border-dashed border-border px-6 py-16 text-center">
+            <div className="font-display text-2xl tracking-[-0.04em]">Console</div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Send a command to Hermes. Tool calls and lifecycle events appear in
-              the execution timeline.
+              Send a command to Hermes. Tool calls appear in the timeline.
             </p>
           </div>
         ) : (
@@ -34,10 +33,10 @@ function MessageBubble({ message }: { message: ChatMessage }) {
     <div className={cn('flex', isUser ? 'justify-end' : 'justify-start')}>
       <div
         className={cn(
-          'max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed',
+          'max-w-[85%] px-4 py-3 text-sm leading-relaxed',
           isUser
-            ? 'bg-primary text-primary-foreground'
-            : 'border border-border/80 bg-card/80 text-foreground',
+            ? 'bg-foreground text-background'
+            : 'border border-border bg-card text-foreground',
         )}
       >
         <div className="mb-1 text-[11px] uppercase tracking-[0.16em] opacity-70">

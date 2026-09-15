@@ -9,7 +9,13 @@ export const HERMES_API_KEY =
 export const DEFAULT_MODEL =
   import.meta.env.VITE_HERMES_MODEL ?? 'hermes-agent'
 
+export const HOST_METRICS_URL = (import.meta.env.VITE_HOST_METRICS_URL ?? '').trim()
+
+export const OPERATOR_NAME = import.meta.env.VITE_OPERATOR_NAME ?? 'Jules'
+export const OPERATOR_ROLE = import.meta.env.VITE_OPERATOR_ROLE ?? 'humain'
+
 export const HEALTH_POLL_INTERVAL_MS = 5_000
+export const METRICS_POLL_INTERVAL_MS = 5_000
 
 export const PROBE_OLLAMA = OLLAMA_BASE_URL.length > 0
 
@@ -23,4 +29,20 @@ export function resolveHermesBaseUrl(): string {
     return '/__hermes'
   }
   return configured
+}
+
+export function resolveHostMetricsUrl(): string | null {
+  if (!HOST_METRICS_URL) return null
+  if (import.meta.env.DEV && !isTauriRuntime() && /^https?:\/\//.test(HOST_METRICS_URL)) {
+    return '/__metrics'
+  }
+  return HOST_METRICS_URL.replace(/\/$/, '')
+}
+
+export function hostLabelFromHermesUrl(url: string = HERMES_BASE_URL): string {
+  try {
+    return new URL(url).hostname.replace(/\.ts\.net$/, '')
+  } catch {
+    return 'hermes'
+  }
 }

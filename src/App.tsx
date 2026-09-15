@@ -1,6 +1,7 @@
 import { AppShell } from '@/components/layout/AppShell'
 import { ApprovalModal } from '@/components/approval/ApprovalModal'
 import { useConnectionHealth } from '@/hooks/useConnectionHealth'
+import { useHostMetrics } from '@/hooks/useHostMetrics'
 import { useUiStore } from '@/stores/uiStore'
 import { ConsoleView } from '@/views/ConsoleView'
 import { SkillsView } from '@/views/SkillsView'
@@ -8,6 +9,7 @@ import { StatusView } from '@/views/StatusView'
 
 export default function App() {
   useConnectionHealth()
+  useHostMetrics()
   const view = useUiStore((state) => state.view)
 
   return (
