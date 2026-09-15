@@ -1,8 +1,11 @@
 import {
+  DEFAULT_MODEL,
   HERMES_API_KEY,
-  HERMES_BASE_URL,
   OLLAMA_BASE_URL,
+  PROBE_OLLAMA,
+  resolveHermesBaseUrl,
 } from '@/lib/constants'
+import { createHttpFetch } from '@/lib/http'
 import type {
   ApprovalDecision,
   CreateRunRequest,
@@ -30,6 +33,7 @@ export interface HermesClientOptions {
   baseUrl?: string
   apiKey?: string
   ollamaBaseUrl?: string
+  probeOllama?: boolean
   fetchImpl?: typeof fetch
 }
 
@@ -102,10 +106,7 @@ function titleForEvent(kind: TimelineEventKind, payload: Record<string, unknown>
   }
 }
 
-function parseSseChunk(
-  chunk: string,
-  runId: string,
-): TimelineEvent | null {
+function parseSseChunk(chunk: string, runId: string): TimelineEvent | null {
   const lines = chunk.split('\n')
   let eventType: string | undefined
   let dataRaw = ''
@@ -168,21 +169,23 @@ export class HermesClient {
   private readonly baseUrl: string
   private readonly apiKey: string
   private readonly ollamaBaseUrl: string
+  private readonly probeOllama: boolean
   private readonly fetchImpl: typeof fetch
 
   constructor(options: HermesClientOptions = {}) {
-    this.baseUrl = (options.baseUrl ?? HERMES_BASE_URL).replace(/\/$/, '')
+    this.baseUrl = (options.baseUrl ?? resolveHermesBaseUrl()).replace(/\/$/, '')
     this.apiKey = options.apiKey ?? HERMES_API_KEY
     this.ollamaBaseUrl = (options.ollamaBaseUrl ?? OLLAMA_BASE_URL).replace(/\/$/, '')
-    this.fetchImpl = options.fetchImpl ?? globalThis.fetch.bind(globalThis)
+    this.probeOllama = options.probeOllama ?? PROBE_OLLAMA
+    this.fetchImpl = options.fetchImpl ?? createHttpFetch()
   }
 
   async checkHealth(): Promise<HealthSnapshot> {
     const checkedAt = new Date().toISOString()
-    const [hermes, llm] = await Promise.all([
-      this.probeHermes(),
-      this.probeOllama(),
-    ])
+    const hermes = await this.probeHermes()
+    const llm = this.probeOllama
+      ? await this.probeOllamaBackend()
+      : await this.probeModelViaHermes()
 
     return {
       hermes: hermes.state,
@@ -200,7 +203,10 @@ export class HermesClient {
   async createRun(body: CreateRunRequest): Promise<CreateRunResponse> {
     return this.requestJson<CreateRunResponse>('/v1/runs', {
       method: 'POST',
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        model: DEFAULT_MODEL,
+        ...body,
+      }),
     })
   }
 
@@ -288,23 +294,46 @@ export class HermesClient {
         return { state: 'offline', detail: `HTTP ${live.status}` }
       }
 
+      const livePayload = (await live.json()) as {
+        status?: string
+        version?: string
+        platform?: string
+      }
+      const version = livePayload.version ? `v${livePayload.version}` : 'reachable'
+
       try {
         const detailed = await this.fetchImpl(`${this.baseUrl}/health/detailed`, {
           method: 'GET',
           headers: authHeaders(this.apiKey),
         })
 
-        if (detailed.ok) {
-          const payload = (await detailed.json()) as { status?: string }
-          if (payload.status && payload.status !== 'ok' && payload.status !== 'healthy') {
-            return { state: 'degraded', detail: `readiness: ${payload.status}` }
+        if (!detailed.ok) {
+          return {
+            state: detailed.status === 401 ? 'degraded' : 'online',
+            detail:
+              detailed.status === 401
+                ? `${version} · auth failed`
+                : `${version} · detailed HTTP ${detailed.status}`,
           }
         }
-      } catch {
-        return { state: 'online', detail: 'liveness ok' }
-      }
 
-      return { state: 'online', detail: 'gateway reachable' }
+        const payload = (await detailed.json()) as {
+          status?: string
+          readiness?: { status?: string }
+          gateway_state?: string
+        }
+        const readiness = payload.readiness?.status ?? payload.status
+        if (readiness && readiness !== 'ok' && readiness !== 'healthy') {
+          return { state: 'degraded', detail: `${version} · readiness: ${readiness}` }
+        }
+
+        return {
+          state: 'online',
+          detail: `${version} · gateway ${payload.gateway_state ?? 'ok'}`,
+        }
+      } catch {
+        return { state: 'online', detail: `${version} · liveness ok` }
+      }
     } catch (error) {
       return {
         state: 'offline',
@@ -313,7 +342,47 @@ export class HermesClient {
     }
   }
 
-  private async probeOllama(): Promise<{ state: HealthSnapshot['llm']; detail: string }> {
+  private async probeModelViaHermes(): Promise<{
+    state: HealthSnapshot['llm']
+    detail: string
+  }> {
+    try {
+      const response = await this.fetchImpl(`${this.baseUrl}/v1/models`, {
+        method: 'GET',
+        headers: authHeaders(this.apiKey),
+      })
+
+      if (!response.ok) {
+        return {
+          state: response.status === 401 ? 'offline' : 'degraded',
+          detail: `HTTP ${response.status}`,
+        }
+      }
+
+      const payload = (await response.json()) as {
+        data?: Array<{ id?: string }>
+      }
+      const models = payload.data?.map((item) => item.id).filter(Boolean) ?? []
+      if (models.length === 0) {
+        return { state: 'degraded', detail: 'no models advertised' }
+      }
+
+      return {
+        state: 'online',
+        detail: models.join(', '),
+      }
+    } catch (error) {
+      return {
+        state: 'offline',
+        detail: error instanceof Error ? error.message : 'unreachable',
+      }
+    }
+  }
+
+  private async probeOllamaBackend(): Promise<{
+    state: HealthSnapshot['llm']
+    detail: string
+  }> {
     try {
       const response = await this.fetchImpl(`${this.ollamaBaseUrl}/api/tags`, {
         method: 'GET',

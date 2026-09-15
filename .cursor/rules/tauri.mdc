@@ -7,6 +7,6 @@ alwaysApply: false
 # Tauri
 
 - Keep network access scoped in `capabilities/default.json`.
-- Only allow local Hermes/Ollama/debug dashboard URLs unless requirements change.
+- Allow local Hermes/Ollama URLs plus explicit remote hosts (e.g. Tailscale `*.ts.net`).
 - Prefer frontend HTTP via the Tauri HTTP plugin when webview CORS is insufficient.
 - Do not widen filesystem or shell permissions without documenting why in `docs/`.

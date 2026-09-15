@@ -85,7 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className={cn('h-2 w-2 rounded-full', statusColor(hermes))} />
           </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>LLM</span>
+            <span>Model</span>
             <span className={cn('h-2 w-2 rounded-full', statusColor(llm))} />
           </div>
         </div>

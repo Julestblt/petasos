@@ -13,7 +13,9 @@
         { "url": "http://127.0.0.1:11434/**" },
         { "url": "http://localhost:11434/**" },
         { "url": "http://127.0.0.1:9119/**" },
-        { "url": "http://localhost:9119/**" }
+        { "url": "http://localhost:9119/**" },
+        { "url": "https://*.ts.net/**" },
+        { "url": "https://homelab.tail042a16.ts.net/**" }
       ]
     }
   ]

@@ -12,13 +12,14 @@ Petasos is a thin observability client. Hermes does the agent work inside Docker
                │ REST + SSE
                ▼
 ┌────────────────────────────┐
-│ hermes (:8642)             │
-│  gateway + API server      │
+│ Hermes gateway             │
+│ local :8642 or Tailscale   │
 └──────────────┬─────────────┘
-               │ OpenAI-compatible
+               │ model backend (homelab-managed)
                ▼
 ┌────────────────────────────┐
-│ llm-local / Ollama (:11434)│
+│ Provider / local Ollama    │
+│ (optional for Petasos)     │
 └────────────────────────────┘
 ```
 
@@ -50,8 +51,14 @@ The client maps SSE payloads into timeline events and optional token deltas for 
 
 ## Tauri boundary
 
-`src-tauri/capabilities/default.json` scopes HTTP to local Hermes/Ollama/dashboard URLs. Future iterations can add filesystem scope for `sandbox/sandbox-data/hermes/skills`.
+`src-tauri/capabilities/default.json` scopes HTTP to local Hermes/Ollama URLs and Tailscale `*.ts.net` hosts. Browser Vite dev proxies Hermes via `/__hermes` when CORS is disabled on the gateway. Future iterations can add filesystem scope for `sandbox/sandbox-data/hermes/skills`.
 
+## Remote vs local
+
+| Mode | Hermes URL | Ollama probe |
+| --- | --- | --- |
+| Local sandbox | `http://127.0.0.1:8642` | optional via `VITE_OLLAMA_BASE_URL` |
+| Tailscale / remote | `https://…ts.net` | skipped; model status from `/v1/models` |
 ## Design principles
 
 - English-only source and docs

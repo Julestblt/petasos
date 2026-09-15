@@ -8,7 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { HERMES_BASE_URL, OLLAMA_BASE_URL } from '@/lib/constants'
+import {
+  HERMES_BASE_URL,
+  OLLAMA_BASE_URL,
+  PROBE_OLLAMA,
+} from '@/lib/constants'
 import { cn, formatRelativeTime } from '@/lib/utils'
 import { useConnectionStore } from '@/stores/connectionStore'
 import type { ConnectionState } from '@/types/hermes'
@@ -53,8 +57,10 @@ export function ConnectionStatus() {
       <div className="space-y-2">
         <h1 className="font-display text-3xl tracking-tight">Connection</h1>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          Verify the local Hermes gateway and Ollama backend before opening the
-          console. Both services are expected to run inside the Docker sandbox.
+          Verify the Hermes gateway before opening the console.
+          {PROBE_OLLAMA
+            ? ' Local Ollama probing is enabled.'
+            : ' Model availability is read from Hermes `/v1/models`.'}
         </p>
       </div>
 
@@ -68,7 +74,7 @@ export function ConnectionStatus() {
               </div>
               <Badge className={cn(tone(hermes))}>{labelFor(hermes)}</Badge>
             </div>
-            <CardDescription>{HERMES_BASE_URL}</CardDescription>
+            <CardDescription className="break-all">{HERMES_BASE_URL}</CardDescription>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
             {hermesDetail ?? 'Waiting for first probe…'}
@@ -80,11 +86,13 @@ export function ConnectionStatus() {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-muted-foreground" />
-                <CardTitle>Local LLM</CardTitle>
+                <CardTitle>{PROBE_OLLAMA ? 'Local LLM' : 'Model'}</CardTitle>
               </div>
               <Badge className={cn(tone(llm))}>{labelFor(llm)}</Badge>
             </div>
-            <CardDescription>{OLLAMA_BASE_URL}</CardDescription>
+            <CardDescription className="break-all">
+              {PROBE_OLLAMA ? OLLAMA_BASE_URL : 'via Hermes API'}
+            </CardDescription>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
             {llmDetail ?? 'Waiting for first probe…'}

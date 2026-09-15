@@ -164,10 +164,22 @@ docs/                Architecture notes
 
 Copy `.env.example` to `.env` to override defaults:
 
-- `VITE_HERMES_BASE_URL`
-- `VITE_OLLAMA_BASE_URL`
-- `VITE_HERMES_API_KEY`
-- `VITE_HERMES_MODEL`
+- `VITE_HERMES_BASE_URL` — local gateway or Tailscale HTTPS URL
+- `VITE_HERMES_API_KEY` — Hermes `API_SERVER_KEY`
+- `VITE_HERMES_MODEL` — model id advertised by Hermes (e.g. `hermes-homelab`)
+- `VITE_OLLAMA_BASE_URL` — optional; set only when probing a local Ollama instance
+
+Remote Hermes example:
+
+```bash
+VITE_HERMES_BASE_URL=https://homelab.tail042a16.ts.net
+VITE_HERMES_API_KEY=your-key
+VITE_HERMES_MODEL=hermes-homelab
+```
+
+Leave `VITE_OLLAMA_BASE_URL` unset for remote mode. `npm run sandbox:init` is only needed for the local Docker stack.
+
+Browser `npm run dev` proxies Hermes through `/__hermes` to avoid CORS. Tauri uses the HTTP plugin with scoped HTTPS permissions.
 
 ## Documentation
 
