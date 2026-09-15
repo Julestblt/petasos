@@ -192,6 +192,7 @@ Browser `npm run dev` proxies Hermes through `/__hermes` to avoid CORS. Tauri us
 - [Architecture](docs/architecture.md)
 - [Sandbox operations](docs/sandbox.md)
 - [Host metrics](docs/host-metrics.md)
+- [Usage quotas](docs/quotas.md)
 
 ## License
 
