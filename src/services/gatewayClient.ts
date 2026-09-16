@@ -1,6 +1,10 @@
 import { resolveGatewayBaseUrl } from '@/lib/constants'
 import { createHttpFetch } from '@/lib/http'
 import { coalesceTranscript } from '@/lib/coalesceTranscript'
+import {
+  emptyMissionControlOverview,
+  normalizeMissionControlOverview,
+} from '@/lib/missionControl'
 import { gatewayAuthHeaders } from '@/services/gatewayAuth'
 import type {
   ApprovalChoice,
@@ -21,6 +25,7 @@ import type {
   StreamEventKind,
   StreamMessageRequest,
 } from '@/types/hermes'
+import type { MissionControlOverview } from '@/types/missionControl'
 
 export class GatewayClientError extends Error {
   readonly status?: number
@@ -277,6 +282,90 @@ export class GatewayClient {
       .sort((a, b) => a.name.localeCompare(b.name))
   }
 
+  async getHermesCapabilities(): Promise<Record<string, unknown>> {
+    const payload = await this.requestJson<unknown>('/v1/hermes/capabilities')
+    return asRecord(payload) ?? {}
+  }
+
+  async getMissionControlOverview(): Promise<MissionControlOverview> {
+    try {
+      const payload = await this.requestJson<unknown>('/v1/mission-control/overview')
+      return normalizeMissionControlOverview(payload, 'overview')
+    } catch (error) {
+      if (!(error instanceof GatewayClientError) || error.status !== 404) {
+        throw error
+      }
+      return this.buildMissionControlOverviewFallback()
+    }
+  }
+
+  private async buildMissionControlOverviewFallback(): Promise<MissionControlOverview> {
+    const [models, skills, toolsets, capabilities] = await Promise.allSettled([
+      this.listModels(),
+      this.listHermesSkills(),
+      this.listHermesToolsets(),
+      this.getHermesCapabilities(),
+    ])
+
+    const overview = emptyMissionControlOverview('Assembled from legacy gateway routes')
+    overview.source = 'fallback'
+
+    if (models.status === 'fulfilled') {
+      overview.models = { available: true, items: models.value }
+    } else {
+      overview.models = {
+        available: false,
+        detail:
+          models.reason instanceof Error ? models.reason.message : 'Models unavailable',
+        items: [],
+      }
+    }
+
+    if (skills.status === 'fulfilled') {
+      overview.skills = { available: true, items: skills.value }
+    } else {
+      overview.skills = {
+        available: false,
+        detail:
+          skills.reason instanceof Error ? skills.reason.message : 'Skills unavailable',
+        items: [],
+      }
+    }
+
+    if (toolsets.status === 'fulfilled') {
+      overview.toolsets = { available: true, items: toolsets.value }
+    } else {
+      overview.toolsets = {
+        available: false,
+        detail:
+          toolsets.reason instanceof Error
+            ? toolsets.reason.message
+            : 'Toolsets unavailable',
+        items: [],
+      }
+    }
+
+    if (capabilities.status === 'fulfilled') {
+      const normalized = normalizeMissionControlOverview(
+        { capabilities: { available: true, data: capabilities.value } },
+        'fallback',
+      )
+      overview.capabilities = normalized.capabilities
+    } else {
+      overview.capabilities = {
+        available: false,
+        detail:
+          capabilities.reason instanceof Error
+            ? capabilities.reason.message
+            : 'Capabilities unavailable',
+        items: null,
+      }
+    }
+
+    overview.fetchedAt = new Date().toISOString()
+    return overview
+  }
+
   async listConversations(): Promise<Conversation[]> {
     const payload = await this.requestJson<unknown>('/v1/conversations')
     const record = asRecord(payload)
@@ -357,6 +446,18 @@ export class GatewayClient {
         ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
       }),
     })
+  }
+
+  async forkConversation(conversationId: string): Promise<Conversation> {
+    const payload = await this.requestJson<unknown>(
+      `/v1/conversations/${encodeURIComponent(conversationId)}/fork`,
+      { method: 'POST', body: JSON.stringify({}) },
+    )
+    const conversation = normalizeConversation(asRecord(payload) ?? {})
+    if (!conversation) {
+      throw new GatewayClientError('Gateway did not return a forked conversation')
+    }
+    return conversation
   }
 
   async streamConversationMessage(
@@ -444,6 +545,13 @@ export class GatewayClient {
     return this.requestJson(`/v1/runs/${encodeURIComponent(runId)}/stop`, {
       method: 'POST',
       body: JSON.stringify({}),
+    })
+  }
+
+  async steerRun(runId: string, input: string): Promise<unknown> {
+    return this.requestJson(`/v1/runs/${encodeURIComponent(runId)}/steer`, {
+      method: 'POST',
+      body: JSON.stringify({ input }),
     })
   }
 

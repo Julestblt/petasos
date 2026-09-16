@@ -5,10 +5,16 @@ import { useConversationsStore } from '@/stores/conversationsStore'
 import { useModelCatalogStore } from '@/stores/modelCatalogStore'
 import type { ThinkingItem } from '@/types/hermes'
 
+let activeStream: AbortController | undefined
+
 export async function sendConversationMessage(input: string): Promise<string> {
   const assistantId = `msg_${crypto.randomUUID()}`
   const userId = `msg_${crypto.randomUUID()}`
   const catalog = useModelCatalogStore.getState()
+
+  activeStream?.abort()
+  activeStream = new AbortController()
+  const signal = activeStream.signal
 
   useChatStore.getState().setSending(true)
 
@@ -118,6 +124,7 @@ export async function sendConversationMessage(input: string): Promise<string> {
             )
         }
       },
+      signal,
     )
 
     useChatStore.getState().finalizeAssistant(assistantId)
@@ -127,6 +134,16 @@ export async function sendConversationMessage(input: string): Promise<string> {
       .catch(() => undefined)
     return conversationId
   } catch (error) {
+    if (signal.aborted) {
+      useChatStore
+        .getState()
+        .finalizeAssistant(assistantId, 'Run stopped.')
+      return (
+        useConversationsStore.getState().activeId ??
+        useChatStore.getState().conversationId ??
+        ''
+      )
+    }
     if (error instanceof GatewayClientError && error.status === 422) {
       void useModelCatalogStore.getState().refresh().catch(() => undefined)
     }
@@ -135,7 +152,26 @@ export async function sendConversationMessage(input: string): Promise<string> {
     useChatStore.getState().finalizeAssistant(assistantId, `Error: ${message}`)
     throw error
   } finally {
+    if (activeStream?.signal === signal) {
+      activeStream = undefined
+    }
     useChatStore.getState().setSending(false)
     useChatStore.getState().setActiveRunId(undefined)
   }
+}
+
+export async function stopActiveRun(): Promise<void> {
+  const runId = useChatStore.getState().activeRunId
+  activeStream?.abort()
+  if (runId) {
+    await gatewayClient.stopRun(runId).catch(() => undefined)
+  }
+}
+
+export async function steerActiveRun(input: string): Promise<void> {
+  const runId = useChatStore.getState().activeRunId
+  if (!runId) {
+    throw new Error('No active run to steer')
+  }
+  await gatewayClient.steerRun(runId, input)
 }

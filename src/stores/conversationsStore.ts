@@ -17,6 +17,7 @@ interface ConversationsStore {
   createNew: (title?: string) => Promise<Conversation>
   rename: (id: string, title: string) => Promise<void>
   togglePin: (id: string) => Promise<void>
+  fork: (id: string) => Promise<Conversation>
   remove: (id: string) => Promise<void>
   clearActive: () => void
 }
@@ -142,6 +143,25 @@ export const useConversationsStore = create<ConversationsStore>()(
               return (b.updated_at ?? 0) - (a.updated_at ?? 0)
             }),
         }))
+      },
+      fork: async (id) => {
+        const conversation = await gatewayClient.forkConversation(id)
+        set((state) => ({
+          conversations: [
+            conversation,
+            ...state.conversations.filter((item) => item.id !== conversation.id),
+          ],
+          activeId: conversation.id,
+        }))
+        useChatStore.getState().setConversationId(conversation.id)
+        useChatStore.getState().setLoadingMessages(true)
+        try {
+          const messages = await gatewayClient.listMessages(conversation.id)
+          useChatStore.getState().setMessages(messages)
+        } finally {
+          useChatStore.getState().setLoadingMessages(false)
+        }
+        return conversation
       },
       remove: async (id) => {
         await gatewayClient.deleteConversation(id)

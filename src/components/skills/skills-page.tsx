@@ -67,6 +67,7 @@ export function SkillsPage() {
     let cancelled = false
 
     async function load() {
+      if (useSkillsStore.getState().skills.length > 0) return
       setLoading(true)
       setError(undefined)
       try {

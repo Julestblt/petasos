@@ -1,5 +1,6 @@
 import { Composer } from '@/components/chat/composer'
 import { MessageList } from '@/components/chat/message-list'
+import { RunControls } from '@/components/chat/run-controls'
 import { Skeleton } from '@/components/ui/skeleton'
 import { sendConversationMessage } from '@/hooks/useConversationStream'
 import { useChatStore } from '@/stores/chatStore'
@@ -24,6 +25,7 @@ export function ChatPage() {
           <MessageList messages={messages} />
         )}
       </div>
+      <RunControls />
       <Composer
         disabled={isSending || hermes === 'offline'}
         onSubmit={sendConversationMessage}

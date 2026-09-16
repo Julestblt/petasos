@@ -31,8 +31,9 @@ exporters stay loopback-only behind the gateway.
 
 | Path | Responsibility |
 | --- | --- |
-| `src/services/gatewayClient.ts` | Models, conversations, SSE stream, approvals, Hermes skills/toolsets |
-| `src/services/skillsService.ts` | Hermes skills overview (`GET /v1/hermes/skills`) |
+| `src/services/gatewayClient.ts` | Mission Control overview, models, conversations, SSE, runs, Hermes skills/toolsets |
+| `src/stores/missionControlStore.ts` | Launch snapshot; hydrates model catalogue + skills |
+| `src/services/skillsService.ts` | Hermes skills overview (fallback when overview empty) |
 | `src/services/hostMetricsService.ts` | `GET /v1/metrics/overview` |
 | `src/services/codexUsageService.ts` | `GET /v1/usage/codex` |
 | `src/services/openCodeGoUsageService.ts` | `GET /v1/usage/opencode-go` |
@@ -43,15 +44,12 @@ exporters stay loopback-only behind the gateway.
 
 ## Gateway integration
 
-See [Gateway protocol](gateway.md) for the full contract. Primary chat
-plane:
+See [Gateway protocol](gateway.md) for the full contract. Primary planes:
 
+- `GET /v1/mission-control/overview` (launch snapshot; partial sections OK)
 - `GET /v1/models`
-- `GET/POST /v1/conversations`
-- `GET /v1/conversations/{id}/messages`
-- `POST /v1/conversations/{id}/messages/stream` (SSE)
-- `POST /v1/conversations/{id}/model`
-- `POST /v1/runs/{id}/approval`
+- `GET/POST /v1/conversations` (+ fork, model lock, message stream)
+- `POST /v1/runs/{id}/approval` / `steer` / `stop`
 
 Observability:
 

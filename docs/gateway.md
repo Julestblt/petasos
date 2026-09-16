@@ -9,7 +9,27 @@ Base URL: `VITE_GATEWAY_BASE_URL` (default
 injects `GATEWAY_API_KEY`. Tauri reads the same key at runtime.
 
 Never send `provider`, `model`, or `model_options`. Send opaque `model_id`
-from `GET /v1/models`, plus optional `reasoning_effort`.
+from `GET /v1/models` (or Mission Control overview), plus optional
+`reasoning_effort`.
+
+## Mission Control bootstrap
+
+| Method | Path | Client |
+| --- | --- | --- |
+| GET | `/v1/mission-control/overview` | `getMissionControlOverview` |
+
+Preferred launch snapshot. Concurrent sections for allowed models, Hermes
+capabilities, skills, and toolsets. Each section carries `available:
+true|false` so a partial upstream failure is a local alert, not a global
+cockpit failure.
+
+Until the production container is rebuilt from the gateway tree that ships
+this route, Petasos falls back to assembling the same shape from:
+
+- `GET /v1/models`
+- `GET /v1/hermes/capabilities`
+- `GET /v1/hermes/skills`
+- `GET /v1/hermes/toolsets`
 
 ## Health and catalogue
 
@@ -19,12 +39,14 @@ from `GET /v1/models`, plus optional `reasoning_effort`.
 | GET | `/v1/models` | `listModels` |
 | GET | `/v1/hermes/skills` | `listHermesSkills` |
 | GET | `/v1/hermes/toolsets` | `listHermesToolsets` |
-| GET | `/v1/hermes/capabilities` | (Status / future) |
+| GET | `/v1/hermes/capabilities` | `getHermesCapabilities` |
 
 `GET /v1/hermes/skills` returns the Hermes-installed skills overview only
 (`name`, `description`, `category`). The gateway does not expose Hermes
 filesystem or editable skill bodies; Petasos Skills is read-only until a
 dedicated notes/skills model exists.
+
+Toolsets distinguish `enabled` vs `configured` in Status.
 
 ## Conversations
 
@@ -34,6 +56,7 @@ dedicated notes/skills model exists.
 | POST | `/v1/conversations` | `createConversation` |
 | PATCH | `/v1/conversations/{id}` | `updateConversation` |
 | DELETE | `/v1/conversations/{id}` | `deleteConversation` |
+| POST | `/v1/conversations/{id}/fork` | `forkConversation` |
 | GET | `/v1/conversations/{id}/messages` | `listMessages` |
 | POST | `/v1/conversations/{id}/model` | `setConversationModel` |
 | POST | `/v1/conversations/{id}/messages/stream` | `streamConversationMessage` |
@@ -66,16 +89,22 @@ SSE kinds the client understands:
 - `approval.request` / `approval.required`
 - `run.completed` / `run.failed` / `run.cancelled`
 
-## Runs (kept on the client)
+## Runs
 
 | Method | Path | Client |
 | --- | --- | --- |
 | POST | `/v1/runs` | `createRun` |
 | GET | `/v1/runs/{id}` | `getRun` |
 | POST | `/v1/runs/{id}/approval` | `resolveApproval` |
+| POST | `/v1/runs/{id}/steer` | `steerRun` |
 | POST | `/v1/runs/{id}/stop` | `stopRun` |
 
-Approval choices: `once` | `session` | `always` | `deny`.
+Steer body: `{ "input": "guidance text" }`. Approval choices:
+`once` | `session` | `always` | `deny`.
+
+Chat shows Stop + Steer while a turn streams. Approvals stay in the
+existing dialog. Do not call Hermes OpenAI-compat surfaces or expose
+filesystem / terminal / browser controls in the UI.
 
 ## Observability
 
@@ -84,9 +113,6 @@ Approval choices: `once` | `session` | `always` | `deny`.
 | GET | `/v1/metrics/overview` | `hostMetricsService` |
 | GET | `/v1/usage/codex` | `codexUsageService` |
 | GET | `/v1/usage/opencode-go` | `openCodeGoUsageService` |
-
-`GET /v1/hermes/toolsets` and `GET /v1/hermes/capabilities` are Hermes
-overview routes (read-only). Status uses toolsets for the agent surface.
 
 ### Not on the gateway yet
 

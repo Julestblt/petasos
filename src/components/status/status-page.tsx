@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import {
+  AlertTriangle,
+  BookOpen,
   Cpu,
   HardDrive,
   MemoryStick,
@@ -9,6 +11,7 @@ import {
   Sparkles,
   Wrench,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,13 +27,23 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { GATEWAY_BASE_URL } from '@/lib/constants'
 import { formatPct, formatRam, formatReset } from '@/lib/format'
 import { cn, formatRelativeTime } from '@/lib/utils'
-import { gatewayClient } from '@/services/gatewayClient'
 import { useConnectionStore } from '@/stores/connectionStore'
 import { useHostMetricsStore } from '@/stores/hostMetricsStore'
-import { useModelCatalogStore } from '@/stores/modelCatalogStore'
+import { useMissionControlStore } from '@/stores/missionControlStore'
 import { useQuotasStore } from '@/stores/quotasStore'
 import type { ConnectionState, HermesToolset } from '@/types/hermes'
 import type { ProviderQuota } from '@/types/quotas'
+
+const FEATURE_LABELS: Array<{ key: string; label: string }> = [
+  { key: 'run_steer', label: 'Steer' },
+  { key: 'run_stop', label: 'Stop' },
+  { key: 'run_approval_response', label: 'Approvals' },
+  { key: 'run_events_sse', label: 'Run SSE' },
+  { key: 'tool_progress_events', label: 'Tool progress' },
+  { key: 'skills_api', label: 'Skills' },
+  { key: 'session_fork', label: 'Fork' },
+  { key: 'session_chat_streaming', label: 'Chat stream' },
+]
 
 function labelFor(state: ConnectionState): string {
   switch (state) {
@@ -57,6 +70,21 @@ function stripEmoji(label: string): string {
   return label.replace(/^\p{Extended_Pictographic}\s*/u, '').trim() || label
 }
 
+function toolsetTone(
+  toolset: HermesToolset,
+): 'default' | 'secondary' | 'outline' {
+  if (toolset.enabled && toolset.configured) return 'default'
+  if (toolset.enabled) return 'secondary'
+  return 'outline'
+}
+
+function toolsetLabel(toolset: HermesToolset): string {
+  if (toolset.enabled && toolset.configured) return 'Ready'
+  if (toolset.enabled && !toolset.configured) return 'Needs config'
+  if (!toolset.enabled && toolset.configured) return 'Disabled'
+  return 'Off'
+}
+
 export function StatusPage() {
   const hermes = useConnectionStore((state) => state.hermes)
   const llm = useConnectionStore((state) => state.llm)
@@ -69,47 +97,18 @@ export function StatusPage() {
   const metrics = useHostMetricsStore((state) => state.metrics)
   const refreshMetrics = useHostMetricsStore((state) => state.refresh)
 
-  const models = useModelCatalogStore((state) => state.models)
-  const refreshModels = useModelCatalogStore((state) => state.refresh)
+  const overview = useMissionControlStore((state) => state.overview)
+  const mcLoading = useMissionControlStore((state) => state.loading)
+  const mcError = useMissionControlStore((state) => state.error)
+  const refreshMissionControl = useMissionControlStore((state) => state.refresh)
 
   const providers = useQuotasStore((state) => state.providers)
   const refreshQuotas = useQuotasStore((state) => state.refresh)
 
-  const [toolsets, setToolsets] = useState<HermesToolset[]>([])
-  const [toolsetsError, setToolsetsError] = useState<string>()
-  const [toolsetsLoading, setToolsetsLoading] = useState(false)
-  const [refreshing, setRefreshing] = useState(false)
-
-  async function loadToolsets() {
-    setToolsetsLoading(true)
-    setToolsetsError(undefined)
-    try {
-      const items = await gatewayClient.listHermesToolsets()
-      setToolsets(items)
-    } catch (error) {
-      setToolsetsError(
-        error instanceof Error ? error.message : 'Failed to load toolsets',
-      )
-    } finally {
-      setToolsetsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    void loadToolsets()
-  }, [])
-
-  async function refreshAll() {
-    setRefreshing(true)
-    await Promise.allSettled([
-      refreshHealth(),
-      refreshMetrics(),
-      refreshModels(),
-      refreshQuotas(),
-      loadToolsets(),
-    ])
-    setRefreshing(false)
-  }
+  const models = overview?.models.items ?? []
+  const skills = overview?.skills.items ?? []
+  const toolsets = overview?.toolsets.items ?? []
+  const capabilities = overview?.capabilities.items
 
   const providerGroups = useMemo(() => {
     const map = new Map<string, number>()
@@ -120,22 +119,54 @@ export function StatusPage() {
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]))
   }, [models])
 
-  const enabledToolsets = toolsets.filter((item) => item.enabled && item.configured)
-  const busy = refreshing || checking
+  const skillGroups = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const skill of skills) {
+      map.set(skill.category, (map.get(skill.category) ?? 0) + 1)
+    }
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+  }, [skills])
+
+  const featureRows = FEATURE_LABELS.map((item) => ({
+    ...item,
+    on: Boolean(capabilities?.features[item.key]),
+  }))
+
+  const busy = checking || mcLoading
+
+  async function refreshAll() {
+    await Promise.allSettled([
+      refreshHealth(),
+      refreshMetrics(),
+      refreshMissionControl(),
+      refreshQuotas(),
+    ])
+  }
 
   return (
     <div className="h-full overflow-auto p-6">
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-1">
-            <h1 className="font-display text-2xl tracking-tight">Status</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="font-display text-2xl tracking-tight">Status</h1>
+              {overview ? (
+                <Badge variant="outline">
+                  {overview.source === 'overview' ? 'Mission Control' : 'Legacy assemble'}
+                </Badge>
+              ) : null}
+            </div>
             <p className="text-sm text-muted-foreground">
-              Homelab pulse through the gateway — services, host, quotas, agent surface.
+              Cockpit snapshot from the gateway — partial outages stay local alerts.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground">
-              {checkedAt ? `Checked ${formatRelativeTime(checkedAt)}` : 'Not checked yet'}
+              {overview?.fetchedAt
+                ? `Snapshot ${formatRelativeTime(overview.fetchedAt)}`
+                : checkedAt
+                  ? `Checked ${formatRelativeTime(checkedAt)}`
+                  : 'Not checked yet'}
             </span>
             <Button
               variant="outline"
@@ -148,6 +179,8 @@ export function StatusPage() {
             </Button>
           </div>
         </div>
+
+        {mcError ? <SectionAlert message={mcError} /> : null}
 
         <section className="flex flex-col gap-3">
           <SectionLabel>Services</SectionLabel>
@@ -162,9 +195,17 @@ export function StatusPage() {
             <ServiceCard
               icon={<Sparkles className="size-4" />}
               title="Models"
-              subtitle={`${models.length} allowed`}
-              state={llm}
-              detail={llmDetail}
+              subtitle={
+                overview?.models.available
+                  ? `${models.length} allowed`
+                  : 'Unavailable'
+              }
+              state={overview?.models.available === false ? 'degraded' : llm}
+              detail={
+                overview?.models.available === false
+                  ? overview.models.detail
+                  : llmDetail
+              }
             />
           </div>
         </section>
@@ -202,11 +243,6 @@ export function StatusPage() {
               progress={metrics?.diskPercent ?? null}
             />
           </div>
-          {metrics && !metrics.online ? (
-            <p className="text-xs text-muted-foreground">
-              {metrics.detail ?? 'Host metrics unavailable'}
-            </p>
-          ) : null}
         </section>
 
         <section className="flex flex-col gap-3">
@@ -232,49 +268,99 @@ export function StatusPage() {
               <SectionLabel>Model catalogue</SectionLabel>
               <Badge variant="secondary">{models.length}</Badge>
             </div>
+            {!overview?.models.available && overview ? (
+              <SectionAlert
+                message={overview.models.detail ?? 'Models section unavailable'}
+              />
+            ) : null}
             <Card>
               <CardContent className="flex flex-col gap-0 py-2">
-                {providerGroups.length === 0 ? (
+                {mcLoading && models.length === 0 ? (
+                  <div className="flex flex-col gap-2 px-4 py-3">
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ) : null}
+                {providerGroups.length === 0 && !mcLoading ? (
                   <p className="px-4 py-4 text-sm text-muted-foreground">
-                    No models returned by the gateway allowlist.
+                    No models in the gateway allowlist.
                   </p>
-                ) : (
-                  providerGroups.map(([label, count], index) => (
-                    <div key={label}>
-                      {index > 0 ? <Separator /> : null}
-                      <div className="flex items-center justify-between gap-3 px-4 py-3">
-                        <span className="truncate text-sm">{label}</span>
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {count}
-                        </span>
-                      </div>
+                ) : null}
+                {providerGroups.map(([label, count], index) => (
+                  <div key={label}>
+                    {index > 0 ? <Separator /> : null}
+                    <div className="flex items-center justify-between gap-3 px-4 py-3">
+                      <span className="truncate text-sm">{label}</span>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {count}
+                      </span>
                     </div>
-                  ))
-                )}
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </section>
 
           <section className="flex flex-col gap-3">
             <div className="flex items-center justify-between gap-3">
-              <SectionLabel>Hermes toolsets</SectionLabel>
+              <SectionLabel>Capabilities</SectionLabel>
               <Badge variant="secondary">
-                {enabledToolsets.length}/{toolsets.length || '—'}
+                {featureRows.filter((item) => item.on).length}/{featureRows.length}
               </Badge>
             </div>
+            {!overview?.capabilities.available && overview ? (
+              <SectionAlert
+                message={
+                  overview.capabilities.detail ?? 'Capabilities section unavailable'
+                }
+              />
+            ) : null}
+            <Card>
+              <CardHeader className="gap-1 pb-2">
+                <CardTitle className="text-sm">
+                  {capabilities?.platform ?? 'Hermes'}
+                </CardTitle>
+                <CardDescription className="font-mono text-[11px]">
+                  {capabilities?.model ?? 'No model label'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2 pb-5">
+                {featureRows.map((item) => (
+                  <Badge
+                    key={item.key}
+                    variant={item.on ? 'default' : 'outline'}
+                  >
+                    {item.label}
+                  </Badge>
+                ))}
+              </CardContent>
+            </Card>
+          </section>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <section className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <SectionLabel>Hermes toolsets</SectionLabel>
+              <Badge variant="secondary">
+                {toolsets.filter((item) => item.enabled && item.configured).length}/
+                {toolsets.length || '—'}
+              </Badge>
+            </div>
+            {!overview?.toolsets.available && overview ? (
+              <SectionAlert
+                message={overview.toolsets.detail ?? 'Toolsets section unavailable'}
+              />
+            ) : null}
             <Card>
               <CardContent className="flex flex-col gap-0 py-2">
-                {toolsetsLoading && toolsets.length === 0 ? (
+                {mcLoading && toolsets.length === 0 ? (
                   <div className="flex flex-col gap-2 px-4 py-3">
                     <Skeleton className="h-4 w-2/3" />
                     <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-4 w-3/4" />
                   </div>
                 ) : null}
-                {toolsetsError ? (
-                  <p className="px-4 py-4 text-sm text-destructive">{toolsetsError}</p>
-                ) : null}
-                {!toolsetsLoading && !toolsetsError && toolsets.length === 0 ? (
+                {!mcLoading && toolsets.length === 0 ? (
                   <p className="px-4 py-4 text-sm text-muted-foreground">
                     No toolsets reported.
                   </p>
@@ -290,26 +376,62 @@ export function StatusPage() {
                             {stripEmoji(toolset.label)}
                           </span>
                           <Badge
-                            variant={
-                              toolset.enabled && toolset.configured
-                                ? 'default'
-                                : 'outline'
-                            }
+                            variant={toolsetTone(toolset)}
                             className="shrink-0"
                           >
-                            {toolset.enabled && toolset.configured
-                              ? 'Ready'
-                              : 'Off'}
+                            {toolsetLabel(toolset)}
                           </Badge>
                         </div>
                         <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+                          {toolset.enabled ? 'enabled' : 'disabled'} ·{' '}
+                          {toolset.configured ? 'configured' : 'not configured'} ·{' '}
                           {toolset.tools.length} tools
-                          {toolset.description ? ` · ${toolset.description}` : ''}
                         </p>
                       </div>
                     </div>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+          </section>
+
+          <section className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <SectionLabel>Skills</SectionLabel>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">{skills.length}</Badge>
+                <Button asChild size="sm" variant="ghost">
+                  <Link to="/skills">Open</Link>
+                </Button>
+              </div>
+            </div>
+            {!overview?.skills.available && overview ? (
+              <SectionAlert
+                message={overview.skills.detail ?? 'Skills section unavailable'}
+              />
+            ) : null}
+            <Card>
+              <CardContent className="flex flex-col gap-0 py-2">
+                {skillGroups.length === 0 ? (
+                  <p className="px-4 py-4 text-sm text-muted-foreground">
+                    No skills in the Mission Control snapshot.
+                  </p>
+                ) : (
+                  skillGroups.map(([category, count], index) => (
+                    <div key={category}>
+                      {index > 0 ? <Separator /> : null}
+                      <div className="flex items-center gap-3 px-4 py-3">
+                        <BookOpen className="size-3.5 text-muted-foreground" />
+                        <span className="min-w-0 flex-1 truncate text-sm">
+                          {category}
+                        </span>
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {count}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
           </section>
@@ -326,14 +448,9 @@ export function StatusPage() {
                 <div className="flex flex-col gap-1">
                   <CardTitle className="text-base">Machines not wired yet</CardTitle>
                   <CardDescription className="text-sm leading-relaxed">
-                    Tailscale exposes{' '}
-                    <span className="font-mono text-xs">
-                      GET /api/v2/tailnet/&#123;tailnet&#125;/devices
-                    </span>
-                    . Petasos will not call it directly — the API key stays on the host.
-                    Add a dedicated gateway route (for example{' '}
-                    <span className="font-mono text-xs">GET /v1/tailnet/devices</span>
-                    ) to list online machines here.
+                    Needs a dedicated gateway route such as{' '}
+                    <span className="font-mono text-xs">GET /v1/tailnet/devices</span>.
+                    Petasos will not call the Tailscale API from the client.
                   </CardDescription>
                 </div>
               </div>
@@ -350,6 +467,15 @@ function SectionLabel({ children }: { children: string }) {
     <h2 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
       {children}
     </h2>
+  )
+}
+
+function SectionAlert({ message }: { message: string }) {
+  return (
+    <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+      <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+      <span>{message}</span>
+    </div>
   )
 }
 

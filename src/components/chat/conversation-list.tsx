@@ -1,5 +1,6 @@
 import { useMemo, type ReactNode } from 'react'
 import {
+  GitFork,
   LoaderCircle,
   MessageSquarePlus,
   MoreHorizontal,
@@ -49,6 +50,7 @@ export function ConversationList() {
   const loading = useConversationsStore((state) => state.loading)
   const select = useConversationsStore((state) => state.select)
   const togglePin = useConversationsStore((state) => state.togglePin)
+  const fork = useConversationsStore((state) => state.fork)
   const remove = useConversationsStore((state) => state.remove)
   const clearActive = useConversationsStore((state) => state.clearActive)
   const navigate = useNavigate()
@@ -108,6 +110,9 @@ export function ConversationList() {
                   navigate('/')
                 }}
                 onPin={() => void togglePin(item.id)}
+                onFork={() => {
+                  void fork(item.id).then(() => navigate('/'))
+                }}
                 onDelete={() => void remove(item.id)}
               />
             ))}
@@ -129,6 +134,9 @@ export function ConversationList() {
                     navigate('/')
                   }}
                   onPin={() => void togglePin(item.id)}
+                  onFork={() => {
+                    void fork(item.id).then(() => navigate('/'))
+                  }}
                   onDelete={() => void remove(item.id)}
                 />
               ))}
@@ -167,12 +175,14 @@ function ConversationRow({
   active,
   onSelect,
   onPin,
+  onFork,
   onDelete,
 }: {
   item: Conversation
   active: boolean
   onSelect: () => void
   onPin: () => void
+  onFork: () => void
   onDelete: () => void
 }) {
   return (
@@ -190,6 +200,10 @@ function ConversationRow({
           <DropdownMenuItem onClick={onPin}>
             <Pin className={item.pinned ? 'fill-current' : undefined} />
             {item.pinned ? 'Unpin' : 'Pin'}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onFork}>
+            <GitFork />
+            Fork
           </DropdownMenuItem>
           <DropdownMenuItem variant="destructive" onClick={onDelete}>
             <Trash2 />
