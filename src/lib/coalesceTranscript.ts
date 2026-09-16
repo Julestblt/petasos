@@ -27,12 +27,6 @@ function textContent(raw: Record<string, unknown>): string {
   return ''
 }
 
-function truncate(value: string, max = 800): string {
-  const trimmed = value.trim()
-  if (trimmed.length <= max) return trimmed
-  return `${trimmed.slice(0, max)}…`
-}
-
 function toolCallsFrom(raw: Record<string, unknown>): ThinkingItem[] {
   if (!Array.isArray(raw.tool_calls)) return []
   const items: ThinkingItem[] = []
@@ -55,7 +49,7 @@ function toolCallsFrom(raw: Record<string, unknown>): ThinkingItem[] {
         `tool_start_${crypto.randomUUID()}`,
       kind: 'tool.started',
       title: `Tool · ${toolName}`,
-      detail: args ? truncate(args) : undefined,
+      detail: args?.trim() || undefined,
       toolName,
       createdAt: messageTimestamp(raw),
     })
@@ -75,7 +69,7 @@ function toolResultItem(raw: Record<string, unknown>, index: number): ThinkingIt
       messageId(raw, index),
     kind: 'tool.completed',
     title: `Tool · ${toolName}`,
-    detail: content ? truncate(content) : undefined,
+    detail: content.trim() || undefined,
     toolName,
     createdAt: messageTimestamp(raw),
   }

@@ -56,7 +56,12 @@ function MessageBubble({ message }: { message: ChatMessage }) {
           <span className="font-medium text-foreground">Hermes</span>
           {message.streaming ? <span>streaming</span> : null}
         </div>
-        {hasThinking ? <ThinkingPanel items={message.thinking ?? []} /> : null}
+        {hasThinking ? (
+          <ThinkingPanel
+            items={message.thinking ?? []}
+            active={Boolean(message.streaming)}
+          />
+        ) : null}
         {hasContent || message.streaming ? (
           <div
             className={cn(
