@@ -32,8 +32,7 @@ export function Composer({ disabled, onSubmit }: ComposerProps) {
 
   return (
     <div className="bg-background px-4 pb-4">
-      <div className="mx-auto max-w-3xl space-y-2">
-        <ModelPicker disabled={disabled || pending} />
+      <div className="mx-auto max-w-3xl">
         <InputGroup className="has-[>textarea]:min-h-[5.5rem]">
           <InputGroupTextarea
             value={value}
@@ -48,7 +47,11 @@ export function Composer({ disabled, onSubmit }: ComposerProps) {
               }
             }}
           />
-          <InputGroupAddon align="block-end" className="justify-end border-t">
+          <InputGroupAddon
+            align="block-end"
+            className="items-center justify-between gap-2 border-t"
+          >
+            <ModelPicker disabled={disabled || pending} />
             <InputGroupButton
               size="sm"
               variant="default"
