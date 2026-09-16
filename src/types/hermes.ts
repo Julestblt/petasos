@@ -162,5 +162,3 @@ export interface HealthSnapshot {
   llmDetail?: string
   checkedAt: string
 }
-
-export type AppView = 'status' | 'console' | 'skills'

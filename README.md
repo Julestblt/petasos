@@ -10,7 +10,7 @@ Petasos is a Tauri v2 + React desktop/mobile client. In remote mode it talks onl
 | --- | --- |
 | Shell | Tauri v2 (desktop + mobile) |
 | UI | React 19 + TypeScript + Vite |
-| Styling | Tailwind CSS v4 + shadcn-style primitives |
+| Styling | Tailwind CSS v4 + shadcn (New York) |
 | State | Zustand |
 | Protocol | HTTP REST + SSE against `homelab-gateway` conversations/models |
 | Sandbox | Docker Compose (`sandbox/`) for local Hermes/Ollama |
@@ -85,9 +85,13 @@ npm run sandbox:reset
 
 ## Application views
 
-- **Chat** — conversation history, Hermes replies, Thinking… tool panel, model + reasoning picker, SSE turns
-- **Status** — gateway health, model catalogue probe, host metrics
-- **Skills** — local scaffold (gateway skills routes land next)
+- **Chat** (`/`) — conversation list in the sidebar, Hermes replies, live
+  action stream, model + reasoning picker, SSE turns
+- **Status** (`/status`) — gateway health, model catalogue, host metrics
+- **Skills** (`/skills`) — local scaffold (gateway skills routes land next)
+
+The Live Orb in the sidebar footer is a companion next to the operator
+name. It does not control the app.
 
 ## Useful commands
 
@@ -133,6 +137,8 @@ Gateway routes used by Petasos:
 ## Documentation
 
 - [Architecture](docs/architecture.md)
+- [Design](docs/design.md)
+- [Gateway protocol](docs/gateway.md)
 - [Sandbox operations](docs/sandbox.md)
 - [Host metrics](docs/host-metrics.md)
 - [Usage quotas](docs/quotas.md)

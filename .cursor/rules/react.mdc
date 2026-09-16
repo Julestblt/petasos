@@ -1,14 +1,17 @@
 ---
 description: React UI and design system conventions
-globs: src/components/**/*.{ts,tsx},src/views/**/*.{ts,tsx}
+globs: src/components/**/*.{ts,tsx}
 alwaysApply: false
 ---
 
 # React & UI
 
 - Functional components only.
-- Compose from `src/components/ui` primitives before inventing new base controls.
+- Compose from `src/components/ui` (shadcn) before inventing new controls.
+- Theme, radius, and color come from `src/index.css` CSS variables.
+- UI files use kebab-case (`operator-card.tsx`, `chat-page.tsx`).
 - Keep views thin; put orchestration in hooks/stores.
-- Dark slate/zinc Mission Control look; prefer stark black/white when redesigning surfaces.
-- One job per panel/section.
-- Markdown rendering belongs in dedicated message components.
+- Live Orb is a companion in the sidebar footer. No click handlers, no
+  run-state coupling. Eyes may follow the pointer.
+- Chat stream shows tool actions live via `ActionStream`.
+- One shell. Do not reintroduce a v1 / v2 split.

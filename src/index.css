@@ -2,59 +2,102 @@
 @plugin '@tailwindcss/typography';
 @import 'highlight.js/styles/github-dark.css';
 
-@theme {
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #f7f7f7;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary: #0a0a0a;
+  --primary-foreground: #f7f7f7;
+  --secondary: #ececec;
+  --secondary-foreground: #0a0a0a;
+  --muted: #ececec;
+  --muted-foreground: #6b6b6b;
+  --accent: #ececec;
+  --accent-foreground: #0a0a0a;
+  --destructive: #dc2626;
+  --border: #e2e2e2;
+  --input: #e2e2e2;
+  --ring: #0a0a0a;
+  --sidebar: #f4f4f5;
+  --sidebar-foreground: #0a0a0a;
+  --sidebar-primary: #0a0a0a;
+  --sidebar-primary-foreground: #f7f7f7;
+  --sidebar-accent: #ececec;
+  --sidebar-accent-foreground: #0a0a0a;
+  --sidebar-border: #e2e2e2;
+  --sidebar-ring: #0a0a0a;
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: #050505;
+  --foreground: #f2f2f2;
+  --card: #0c0c0c;
+  --card-foreground: #f2f2f2;
+  --popover: #0c0c0c;
+  --popover-foreground: #f2f2f2;
+  --primary: #f2f2f2;
+  --primary-foreground: #050505;
+  --secondary: #141414;
+  --secondary-foreground: #f2f2f2;
+  --muted: #141414;
+  --muted-foreground: #8a8a8a;
+  --accent: #171717;
+  --accent-foreground: #f2f2f2;
+  --destructive: #ef4444;
+  --border: #222222;
+  --input: #222222;
+  --ring: #f2f2f2;
+  --sidebar: #080808;
+  --sidebar-foreground: #f2f2f2;
+  --sidebar-primary: #f4f4f5;
+  --sidebar-primary-foreground: #050505;
+  --sidebar-accent: #121212;
+  --sidebar-accent-foreground: #f2f2f2;
+  --sidebar-border: #1c1c1c;
+  --sidebar-ring: #f2f2f2;
+}
+
+@theme inline {
   --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-
-  --color-background: #050505;
-  --color-foreground: #f2f2f2;
-  --color-card: #0c0c0c;
-  --color-card-foreground: #f2f2f2;
-  --color-popover: #0c0c0c;
-  --color-popover-foreground: #f2f2f2;
-  --color-primary: #f2f2f2;
-  --color-primary-foreground: #050505;
-  --color-secondary: #141414;
-  --color-secondary-foreground: #f2f2f2;
-  --color-muted: #141414;
-  --color-muted-foreground: #8a8a8a;
-  --color-accent: #171717;
-  --color-accent-foreground: #f2f2f2;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
-  --color-border: #222222;
-  --color-input: #222222;
-  --color-ring: #f2f2f2;
-  --color-sidebar: #080808;
-}
-
-html.light {
-  --color-background: #f7f7f7;
-  --color-foreground: #0a0a0a;
-  --color-card: #ffffff;
-  --color-card-foreground: #0a0a0a;
-  --color-popover: #ffffff;
-  --color-popover-foreground: #0a0a0a;
-  --color-primary: #0a0a0a;
-  --color-primary-foreground: #f7f7f7;
-  --color-secondary: #ececec;
-  --color-secondary-foreground: #0a0a0a;
-  --color-muted: #ececec;
-  --color-muted-foreground: #6b6b6b;
-  --color-accent: #ececec;
-  --color-accent-foreground: #0a0a0a;
-  --color-destructive: #dc2626;
-  --color-destructive-foreground: #fafafa;
-  --color-border: #e2e2e2;
-  --color-input: #e2e2e2;
-  --color-ring: #0a0a0a;
-  --color-sidebar: #fafafa;
-  --gaze-eye: #0a0a0a;
-}
-
-html.dark {
-  --gaze-eye: #0a0a0a;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
 }
 
 @layer base {
@@ -79,125 +122,5 @@ html.dark {
 
   .font-display {
     font-family: var(--font-display);
-  }
-}
-
-@layer components {
-  .gaze-glow-pulse {
-    animation: gaze-glow-pulse 1.6s ease-in-out infinite;
-  }
-
-  .gaze-hero-attention {
-    animation: gaze-attention 1.1s ease-in-out infinite;
-  }
-
-  .gaze-hero-success {
-    animation: gaze-success 0.7s ease-out 1;
-  }
-
-  .gaze-eye-thinking {
-    animation: gaze-eye-blink 1.4s ease-in-out infinite;
-  }
-
-  .gaze-orbit {
-    border: 1px solid color-mix(in oklch, white 28%, transparent);
-    animation: gaze-orbit-spin 3.2s linear infinite;
-  }
-
-  .gaze-spark-a {
-    top: 8%;
-    left: 62%;
-    animation: gaze-spark 1.8s ease-in-out infinite;
-  }
-
-  .gaze-spark-b {
-    top: 58%;
-    left: 8%;
-    animation: gaze-spark 2.2s ease-in-out infinite 0.3s;
-  }
-
-  .gaze-spark-c {
-    top: 72%;
-    left: 74%;
-    animation: gaze-spark 2s ease-in-out infinite 0.6s;
-  }
-}
-
-@keyframes gaze-glow-pulse {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(0.96);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.04);
-  }
-}
-
-@keyframes gaze-attention {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.03);
-  }
-}
-
-@keyframes gaze-success {
-  0% {
-    transform: scale(1);
-  }
-  40% {
-    transform: scale(1.08);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes gaze-eye-blink {
-  0%,
-  42%,
-  100% {
-    transform: scaleY(1);
-  }
-  50% {
-    transform: scaleY(0.15);
-  }
-}
-
-@keyframes gaze-orbit-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes gaze-spark {
-  0%,
-  100% {
-    opacity: 0.15;
-    transform: translateY(0);
-  }
-  50% {
-    opacity: 1;
-    transform: translateY(-4px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .gaze-glow-pulse,
-  .gaze-hero-attention,
-  .gaze-hero-success,
-  .gaze-eye-thinking,
-  .gaze-orbit,
-  .gaze-spark-a,
-  .gaze-spark-b,
-  .gaze-spark-c {
-    animation: none !important;
   }
 }

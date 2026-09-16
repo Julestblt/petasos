@@ -1,0 +1,17 @@
+---
+description: Petasos visual system and shell
+globs: src/components/**/*.{ts,tsx},src/index.css
+alwaysApply: false
+---
+
+# Design
+
+- One shell. Chat is the product; Status and Skills are secondary rooms.
+- Compose shadcn primitives from `src/components/ui`. Do not invent a
+  parallel button, card, or menu.
+- Color, radius, and type come from CSS variables in `src/index.css`.
+- Live Orb sits left of the operator name. Companion only: gaze and blink,
+  no actions.
+- Sidebar footer holds quotas, host, gateway counts, then identity.
+- Streaming turns keep `ActionStream` open so tool commands are visible
+  as they start.
