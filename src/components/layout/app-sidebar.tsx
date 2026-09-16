@@ -20,13 +20,13 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="gap-2 px-3 pt-3 group-data-[collapsible=icon]:px-2">
-        <div className="flex items-center gap-2 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-2">
-          <BrandMark size={18} className="shrink-0" />
-          <span className="min-w-0 flex-1 truncate font-display text-sm tracking-tight group-data-[collapsible=icon]:hidden">
+      <SidebarHeader className="gap-3 px-3 pt-4 pb-2 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:pt-3">
+        <div className="flex items-center gap-3 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-2">
+          <BrandMark size={36} className="shrink-0 group-data-[collapsible=icon]:size-7!" />
+          <span className="min-w-0 flex-1 truncate font-display text-xl leading-none group-data-[collapsible=icon]:hidden">
             Petasos
           </span>
-          <SidebarTrigger className="size-7 text-muted-foreground hover:text-foreground">
+          <SidebarTrigger className="size-8 shrink-0 text-muted-foreground hover:text-foreground group-data-[collapsible=icon]:size-7">
             {collapsed ? (
               <PanelLeft className="size-4" />
             ) : (

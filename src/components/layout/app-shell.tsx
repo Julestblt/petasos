@@ -20,8 +20,8 @@ export function AppShell() {
       className="h-svh overflow-hidden"
       style={
         {
-          '--sidebar-width': '17rem',
-          '--sidebar-width-icon': '3.25rem',
+          '--sidebar-width': '18rem',
+          '--sidebar-width-icon': '3.5rem',
         } as CSSProperties
       }
     >

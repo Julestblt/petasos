@@ -29,8 +29,10 @@ surfaces, hex accents, or custom buttons when a registry component exists.
 | `--muted` | Telemetry, captions, action output |
 | `--destructive` | Failures and deny |
 
-Type: Space Grotesk for UI, IBM Plex Mono for metrics, commands, and
-stream output. Dark is the default. Light is the same tokens inverted.
+Type: Syne for display / brand titles, IBM Plex Sans for UI, IBM Plex
+Mono for metrics, commands, and stream output. The sidebar brand mark
+is oversized relative to chrome so the petasos mark reads as identity,
+not a favicon. Dark is the default. Light is the same tokens inverted.
 
 UI files use kebab-case (`operator-card.tsx`, `action-stream.tsx`). Copy,
 docs, and source stay English. Operator role may remain `humain` via env.
