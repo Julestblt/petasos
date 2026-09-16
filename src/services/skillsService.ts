@@ -1,4 +1,3 @@
-import { hermesClient } from '@/services/hermesClient'
 import type { SkillFile } from '@/types/hermes'
 
 const STARTER_SKILL: SkillFile = {
@@ -7,24 +6,19 @@ const STARTER_SKILL: SkillFile = {
   path: 'skills/welcome.md',
   content: `# Welcome
 
-This skill explorer reads Markdown skills from the Hermes sandbox volume.
+This skill explorer is a local scaffold. The homelab gateway does not expose
+Hermes skills or filesystem routes.
 
-Path on host:
+Path on host for the local Docker sandbox:
 
 \`sandbox/sandbox-data/hermes/skills/\`
 
-Tauri filesystem access will land in a follow-up iteration. Until then, this starter document shows the editing surface.
+Tauri filesystem access will land in a follow-up iteration.
 `,
   updatedAt: new Date().toISOString(),
 }
 
 export async function listSkills(): Promise<SkillFile[]> {
-  try {
-    await hermesClient.getCapabilities()
-  } catch {
-    // Capabilities probe is best-effort for this scaffold.
-  }
-
   return [STARTER_SKILL]
 }
 

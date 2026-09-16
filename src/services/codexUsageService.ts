@@ -1,8 +1,6 @@
-import {
-  CODEX_USAGE_TOKEN,
-  resolveCodexUsageUrl,
-} from '@/lib/constants'
+import { resolveGatewayBaseUrl } from '@/lib/constants'
 import { createHttpFetch } from '@/lib/http'
+import { gatewayAuthHeaders } from '@/services/gatewayAuth'
 import type { ProviderQuota, QuotaWindow } from '@/types/quotas'
 
 function parseWindow(value: unknown): QuotaWindow | null {
@@ -34,38 +32,13 @@ function parseWindow(value: unknown): QuotaWindow | null {
 }
 
 export async function fetchCodexUsage(): Promise<ProviderQuota> {
-  const url = resolveCodexUsageUrl()
   const fetchedAt = new Date().toISOString()
-
-  if (!url) {
-    return {
-      id: 'codex',
-      label: 'Codex',
-      available: false,
-      primary: null,
-      detail: 'CODEX_USAGE_URL is not configured',
-      fetchedAt,
-    }
-  }
-
-  if (!CODEX_USAGE_TOKEN) {
-    return {
-      id: 'codex',
-      label: 'Codex',
-      available: false,
-      primary: null,
-      detail: 'CODEX_USAGE_TOKEN is not configured',
-      fetchedAt,
-    }
-  }
-
   const fetchImpl = createHttpFetch()
+  const url = `${resolveGatewayBaseUrl()}/v1/usage/codex`
+
   const response = await fetchImpl(url, {
     method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${CODEX_USAGE_TOKEN}`,
-    },
+    headers: await gatewayAuthHeaders(),
   })
 
   if (!response.ok) {

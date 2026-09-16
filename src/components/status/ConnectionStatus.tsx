@@ -2,11 +2,7 @@ import type { ReactNode } from 'react'
 import { RefreshCw, Server, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  HERMES_BASE_URL,
-  OLLAMA_BASE_URL,
-  PROBE_OLLAMA,
-} from '@/lib/constants'
+import { GATEWAY_BASE_URL } from '@/lib/constants'
 import { cn, formatRelativeTime } from '@/lib/utils'
 import { useConnectionStore } from '@/stores/connectionStore'
 import type { ConnectionState } from '@/types/hermes'
@@ -38,22 +34,22 @@ export function ConnectionStatus() {
       <div className="space-y-2">
         <h1 className="font-display text-3xl tracking-[-0.04em]">Connection</h1>
         <p className="max-w-xl text-sm text-muted-foreground">
-          Gateway and model readiness for the linked Hermes instance.
+          Homelab gateway readiness and advertised model modes.
         </p>
       </div>
 
       <div className="divide-y divide-border border border-border">
         <StatusRow
           icon={<Server className="h-4 w-4" />}
-          title="Hermes"
-          subtitle={HERMES_BASE_URL}
+          title="Gateway"
+          subtitle={GATEWAY_BASE_URL}
           state={hermes}
           detail={hermesDetail}
         />
         <StatusRow
           icon={<Sparkles className="h-4 w-4" />}
-          title={PROBE_OLLAMA ? 'Local LLM' : 'Model'}
-          subtitle={PROBE_OLLAMA ? OLLAMA_BASE_URL : 'via Hermes API'}
+          title="Model modes"
+          subtitle="GET /v1/model-policy"
           state={llm}
           detail={llmDetail}
         />

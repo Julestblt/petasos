@@ -1,6 +1,8 @@
 # Architecture
 
-Petasos is a thin observability client. Hermes does the agent work inside Docker; the UI streams status, tokens, tool events, and approvals over HTTP/SSE.
+Petasos is a thin observability client for the private homelab gateway. The UI
+talks only to documented gateway routes; Hermes, Glances, and the Codex exporter
+stay loopback-only behind the gateway.
 
 ## Runtime topology
 
@@ -9,68 +11,67 @@ Petasos is a thin observability client. Hermes does the agent work inside Docker
 │ Petasos (Tauri + React)    │
 │  Status / Console / Skills │
 └──────────────┬─────────────┘
-               │ REST + SSE
+               │ REST (Bearer gateway key)
                ▼
 ┌────────────────────────────┐
-│ Petasos proxy              │
-│ local :8643 or Tailscale   │
+│ Tailscale Serve :443       │
+│ homelab.tail042a16.ts.net  │
 └──────────────┬─────────────┘
-               │ authenticated local REST + SSE
+               │ loopback
                ▼
 ┌────────────────────────────┐
-│ Hermes gateway             │
-│ local :8642                │
-└──────────────┬─────────────┘
-               │ model backend (homelab-managed)
-               ▼
-┌────────────────────────────┐
-│ Provider / local Ollama    │
-│ (optional for Petasos)     │
-└────────────────────────────┘
+│ homelab-gateway :8644      │
+└──────┬──────────┬──────────┘
+       │          │
+       ▼          ▼
+  Hermes :8642   Glances / Codex exporter
 ```
 
 ## Frontend modules
 
 | Path | Responsibility |
 | --- | --- |
-| `src/services/hermesClient.ts` | Authenticated REST + SSE parsing |
-| `src/services/skillsService.ts` | Skills inventory adapter |
-| `src/stores/*` | Zustand slices for connection, chat, timeline, skills, approvals, UI |
-| `src/hooks/useConnectionHealth.ts` | Periodic health polling |
-| `src/hooks/useRunStream.ts` | Create run + fan out SSE into stores |
+| `src/services/gatewayClient.ts` | Auth’d REST + run polling |
+| `src/services/hostMetricsService.ts` | `GET /v1/metrics/overview` |
+| `src/services/codexUsageService.ts` | `GET /v1/usage/codex` |
+| `src/services/openCodeGoUsageService.ts` | `GET /v1/usage/opencode-go` |
+| `src/stores/*` | Zustand slices for connection, chat, timeline, modes, quotas |
+| `src/hooks/useRunStream.ts` | Create run + poll until terminal status |
 | `src/components/*` | Presentational shells split by feature |
-| `src/views/*` | Route-like top-level screens |
 
-## Hermes integration
+## Gateway integration
 
-Primary control plane:
+Control plane used by Petasos:
 
-- `GET /health` / `GET /health/detailed`
+- `GET /health`
+- `GET /v1/model-policy`
 - `POST /v1/runs`
 - `GET /v1/runs/{id}`
-- `GET /v1/runs/{id}/events` (SSE)
-- `POST /v1/runs/{id}/approval`
-- `POST /v1/runs/{id}/stop`
-- `GET /v1/capabilities`
+- `GET /v1/metrics/overview`
+- `GET /v1/usage/codex`
+- `GET /v1/usage/opencode-go`
 
-The client maps SSE payloads into timeline events and optional token deltas for the assistant bubble.
+Clients never send `provider`, `model`, or `model_options`. They select a mode
+(`auto` / `admin` / `dev`) and the gateway injects the upstream model target.
 
-In remote mode, the Petasos proxy authenticates the Tailscale identity, injects the Hermes API key, enforces the model policy, and exposes `GET /petasos/model-policy`. The SPA never receives the Hermes key.
+There is no SSE stream, no sessions API, and no approval route on the gateway.
+Petasos polls run status and uses a local dashboard `session_id`.
+
+## Auth
+
+- Browser `npm run dev`: Vite proxies `/__gateway` and injects `Authorization`
+  from process env `GATEWAY_API_KEY` (never `VITE_*`).
+- Tauri: Rust reads `GATEWAY_API_KEY` at runtime and exposes it via
+  `gateway_api_key` for authenticated HTTP plugin calls.
 
 ## Tauri boundary
 
-`src-tauri/capabilities/default.json` scopes HTTP to local Hermes/Ollama URLs and Tailscale `*.ts.net` hosts. Browser Vite dev proxies Hermes via `/__hermes` when CORS is disabled on the gateway. Future iterations can add filesystem scope for `sandbox/sandbox-data/hermes/skills`.
+`src-tauri/capabilities/default.json` scopes HTTP to Tailscale `*.ts.net` hosts
+and local sandbox ports. Do not embed the gateway key in the frontend bundle.
 
-## Remote vs local
-
-| Mode | Hermes URL | Ollama probe |
-| --- | --- | --- |
-| Local sandbox | `http://127.0.0.1:8642` | optional via `VITE_OLLAMA_BASE_URL` |
-| Tailscale / remote | `https://…ts.net:8445` Petasos proxy | skipped; model status from `/v1/models` |
 ## Design principles
 
 - English-only source and docs
 - No inline comments; names and structure carry intent
 - Small files with one responsibility
-- Dark slate/zinc Mission Control aesthetic
 - Prefer updating docs/rules when architecture changes

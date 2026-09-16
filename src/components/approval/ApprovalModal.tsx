@@ -8,27 +8,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { hermesClient } from '@/services/hermesClient'
 import { useApprovalStore } from '@/stores/approvalStore'
 
 export function ApprovalModal() {
   const pending = useApprovalStore((state) => state.pending)
-  const resolving = useApprovalStore((state) => state.resolving)
-  const setResolving = useApprovalStore((state) => state.setResolving)
   const clear = useApprovalStore((state) => state.clear)
-
-  async function resolve(decision: 'approve' | 'deny') {
-    if (!pending) return
-    setResolving(true)
-    try {
-      await hermesClient.resolveApproval(pending.runId, decision, {
-        request_id: pending.id,
-      })
-      clear()
-    } catch {
-      setResolving(false)
-    }
-  }
 
   return (
     <Dialog open={Boolean(pending)} onOpenChange={(open) => !open && clear()}>
@@ -36,11 +20,11 @@ export function ApprovalModal() {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldAlert className="h-5 w-5 text-amber-300" />
-            Approval required
+            Approval unavailable
           </DialogTitle>
           <DialogDescription>
-            {pending?.description ??
-              'A critical Hermes action is waiting for a human decision.'}
+            The homelab gateway does not expose Hermes approval routes. Resolve
+            the run on the host if it is waiting for a decision.
           </DialogDescription>
         </DialogHeader>
 
@@ -54,16 +38,7 @@ export function ApprovalModal() {
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            disabled={resolving}
-            onClick={() => void resolve('deny')}
-          >
-            Deny
-          </Button>
-          <Button disabled={resolving} onClick={() => void resolve('approve')}>
-            Approve
-          </Button>
+          <Button onClick={clear}>Dismiss</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

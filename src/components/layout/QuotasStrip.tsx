@@ -63,7 +63,7 @@ export function QuotasStrip() {
 
       {visible.length === 0 ? (
         <div className="text-[10px] leading-snug text-muted-foreground">
-          {error ?? 'Configure Codex / OpenCode Go quotas'}
+          {error ?? 'Quotas via gateway'}
         </div>
       ) : (
         <div className="flex items-stretch">

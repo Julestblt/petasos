@@ -1,64 +1,37 @@
 # Usage quotas
 
-Petasos shows **5h** rolling windows in the sidebar for configured providers.
+Petasos shows **5h** rolling windows from the homelab gateway for Codex and
+OpenCode Go. Upstream provider keys stay on the gateway host.
 
-## Codex (homelab exporter)
-
-```http
-GET https://homelab.tail042a16.ts.net:8444/v1/codex/usage
-Authorization: Bearer <exporter_key>
-```
-
-```bash
-VITE_CODEX_USAGE_URL=https://homelab.tail042a16.ts.net:8444/v1/codex/usage
-VITE_CODEX_USAGE_TOKEN=…
-```
-
-Get the exporter key on the host:
-
-```bash
-sudo cat /root/.codex-usage-exporter.env
-```
-
-Notes:
-
-- Not the OpenAI Platform API key.
-- Exporter keeps ChatGPT OAuth server-side.
-- If login expires, re-run `codex login` on the host.
-
-## OpenCode Go (cloud API)
+## Codex
 
 ```http
-GET https://opencode.ai/zen/go/v1/usage
-Authorization: Bearer sk-opencode-…
+GET https://homelab.tail042a16.ts.net/v1/usage/codex
+Authorization: Bearer <GATEWAY_API_KEY>
 ```
 
-Example payload:
+## OpenCode Go
 
-```json
-{
-  "usage": {
-    "rolling": { "status": "ok", "percent": 9, "resetsAt": "…" },
-    "weekly": { "status": "ok", "percent": 12, "resetsAt": "…" },
-    "monthly": { "status": "ok", "percent": 6, "resetsAt": "…" }
-  }
-}
+```http
+GET https://homelab.tail042a16.ts.net/v1/usage/opencode-go
+Authorization: Bearer <GATEWAY_API_KEY>
 ```
 
-Petasos uses `usage.rolling` (≈5h) only.
+The gateway forwards the OpenCode Go subscription payload and keeps
+`OPENCODE_GO_API_KEY` server-side. A `503` with `opencode_go_not_configured`
+means the homelab key has not been set on the gateway.
+
+Petasos reads `usage.rolling` (≈5h) only.
+
+## Petasos `.env`
 
 ```bash
-VITE_OPENCODE_GO_API_KEY=sk-opencode-…
+VITE_GATEWAY_BASE_URL=https://homelab.tail042a16.ts.net
+GATEWAY_API_KEY=…
 ```
 
-Optional URL override:
-
-```bash
-VITE_OPENCODE_GO_USAGE_URL=https://opencode.ai/zen/go/v1/usage
-```
-
-Browser `npm run dev` proxies through `/__opencode-go`. Tauri allows `https://opencode.ai/**`.
+Do not set `VITE_CODEX_USAGE_*` or `VITE_OPENCODE_GO_*`.
 
 ## Polling
 
-Both providers refresh every 30s when configured.
+Both providers refresh every 30s while the app is open.

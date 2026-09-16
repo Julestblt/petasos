@@ -8,6 +8,8 @@ alwaysApply: true
 - English only for code, docs, UI copy, commits, and PR text.
 - No inline comments. Prefer clear names and small modules.
 - Keep files focused; split stores, services, and UI by feature.
+- Remote I/O goes through `homelab-gateway` only; never call Hermes, Glances, or Codex exporters directly from the client.
+- Never put secrets in `VITE_*` env vars. Use `GATEWAY_API_KEY` at runtime (Vite proxy or Tauri).
 - Update `README.md` and `docs/` when behavior or setup changes.
 - Update `.cursor/rules/` when conventions change.
 - Do not commit secrets, `.env`, or `sandbox/sandbox-data/`.

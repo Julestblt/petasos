@@ -1,5 +1,6 @@
-import { OPENCODE_GO_API_KEY, resolveOpenCodeGoUsageUrl } from '@/lib/constants'
+import { resolveGatewayBaseUrl } from '@/lib/constants'
 import { createHttpFetch } from '@/lib/http'
+import { gatewayAuthHeaders } from '@/services/gatewayAuth'
 import type { ProviderQuota, QuotaWindow } from '@/types/quotas'
 
 function parseRolling(value: unknown): QuotaWindow | null {
@@ -25,44 +26,20 @@ function parseRolling(value: unknown): QuotaWindow | null {
 }
 
 export async function fetchOpenCodeGoUsage(): Promise<ProviderQuota> {
-  const url = resolveOpenCodeGoUsageUrl()
   const fetchedAt = new Date().toISOString()
-
-  if (!url) {
-    return {
-      id: 'opencode-go',
-      label: 'OpenCode Go',
-      available: false,
-      primary: null,
-      detail: 'OPENCODE_GO_USAGE_URL is not configured',
-      fetchedAt,
-    }
-  }
-
-  if (!OPENCODE_GO_API_KEY) {
-    return {
-      id: 'opencode-go',
-      label: 'OpenCode Go',
-      available: false,
-      primary: null,
-      detail: 'OPENCODE_GO_API_KEY is not configured',
-      fetchedAt,
-    }
-  }
-
   const fetchImpl = createHttpFetch()
+  const url = `${resolveGatewayBaseUrl()}/v1/usage/opencode-go`
+
   const response = await fetchImpl(url, {
     method: 'GET',
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${OPENCODE_GO_API_KEY}`,
-    },
-    redirect: 'error',
+    headers: await gatewayAuthHeaders(),
   })
 
   if (!response.ok) {
     const body = await response.text()
-    throw new Error(`OpenCode Go usage HTTP ${response.status}: ${body.slice(0, 160)}`)
+    throw new Error(
+      `OpenCode Go usage HTTP ${response.status}: ${body.slice(0, 160)}`,
+    )
   }
 
   const payload = (await response.json()) as {

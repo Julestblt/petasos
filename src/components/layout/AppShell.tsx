@@ -87,11 +87,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           <QuotasStrip />
           <div className="space-y-2 border-t border-border px-4 py-3">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Hermes</span>
+              <span>Gateway</span>
               <Dot state={hermes} />
             </div>
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Model</span>
+              <span>Modes</span>
               <Dot state={llm} />
             </div>
           </div>

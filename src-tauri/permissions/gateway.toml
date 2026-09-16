@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-gateway-api-key"
+description = "Allows reading GATEWAY_API_KEY from the process environment at runtime"
+commands.allow = ["gateway_api_key"]

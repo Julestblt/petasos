@@ -1,8 +1,8 @@
 # Petasos
 
-Cross-platform Mission Control for a sandboxed [Hermes Agent](https://hermes-agent.nousresearch.com/) (Nous Research).
+Cross-platform Mission Control for a sandboxed [Hermes Agent](https://hermes-agent.nousresearch.com/) (Nous Research), reached through the private [homelab-gateway](https://github.com/Julestblt/homelab-gateway).
 
-Petasos is a Tauri v2 + React desktop/mobile client that observes and steers a fully self-contained Docker test environment: local Ollama for inference, Hermes gateway for agent execution, and no required host-side tools beyond Docker and the Tauri toolchain.
+Petasos is a Tauri v2 + React desktop/mobile client. In remote mode it talks only to the documented gateway API over Tailscale. A local Docker sandbox remains available for offline Hermes/Ollama work.
 
 ## Stack
 
@@ -12,14 +12,14 @@ Petasos is a Tauri v2 + React desktop/mobile client that observes and steers a f
 | UI | React 19 + TypeScript + Vite |
 | Styling | Tailwind CSS v4 + shadcn-style primitives |
 | State | Zustand |
-| Protocol | HTTP REST + SSE against Hermes `/v1/runs` |
-| Sandbox | Docker Compose (`sandbox/`) |
+| Protocol | HTTP REST against `homelab-gateway` (`/v1/runs`, metrics, usage) |
+| Sandbox | Docker Compose (`sandbox/`) for local Hermes/Ollama |
 
 ## Prerequisites
 
 - Node.js 22+
 - Rust toolchain (stable)
-- Docker + Docker Compose
+- Docker + Docker Compose (optional local sandbox)
 - Platform deps for Tauri: see [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/)
 
 ### Ubuntu / WSL2 (desktop shell)
@@ -40,13 +40,6 @@ sudo apt install -y \
   pkg-config
 ```
 
-If `glib-sys` still fails, confirm:
-
-```bash
-pkg-config --modversion glib-2.0
-pkg-config --modversion webkit2gtk-4.1
-```
-
 Frontend-only work does not need these packages:
 
 ```bash
@@ -59,14 +52,13 @@ npm run dev
 ```bash
 npm install
 cp .env.example .env
-npm run sandbox:init
+# Set GATEWAY_API_KEY from the host client env; keep mode 0600.
 npm run tauri:dev
 ```
 
-Frontend-only (browser against local Hermes):
+Frontend-only (browser against the Tailscale gateway via Vite proxy):
 
 ```bash
-npm run sandbox:init
 npm run dev
 ```
 
@@ -77,6 +69,8 @@ The sandbox lives in `sandbox/` and creates two containers on `petasos-net`:
 1. `llm-local` — `ollama/ollama` on `11434`
 2. `hermes` — `nousresearch/hermes-agent` gateway on `8642` (+ debug dashboard `9119`)
 
+Remote Petasos does **not** call these ports over Tailscale. They remain host-local behind `homelab-gateway`.
+
 ### Start
 
 ```bash
@@ -85,22 +79,13 @@ npm run sandbox:init
 bash sandbox/init-sandbox.sh
 ```
 
-The init script:
-
-1. Starts Ollama
-2. Waits for HTTP readiness
-3. Pulls `qwen2.5-coder:1.5b` (falls back to `llama3.2:1b`)
-4. Starts Hermes with `API_SERVER_KEY=petasos-local-dev-token`
-
 ### Reset memory
 
 ```bash
 npm run sandbox:reset
 ```
 
-Stops the stack and deletes `sandbox/sandbox-data/hermes` so the agent restarts with a clean memory volume.
-
-### Endpoints
+### Endpoints (local sandbox only)
 
 | Service | URL |
 | --- | --- |
@@ -109,18 +94,12 @@ Stops the stack and deletes `sandbox/sandbox-data/hermes` so the agent restarts 
 | Hermes dashboard | `http://127.0.0.1:9119` |
 | Ollama | `http://127.0.0.1:11434` |
 
-Auth header for Hermes:
-
-```http
-Authorization: Bearer petasos-local-dev-token
-```
-
 ## Application views
 
-- **Status** — probes Hermes + Ollama connectivity
-- **Console** — command input, Markdown responses, live execution timeline from SSE
-- **Skills & Memory** — inspect/edit Markdown skills (filesystem binding lands next)
-- **Approval modal** — human-in-the-loop gate for critical Hermes actions
+- **Status** — probes gateway health + model policy
+- **Console** — command input, mode picker (`auto` / `admin` / `dev`), Markdown responses, run timeline from polling
+- **Skills & Memory** — local scaffold (gateway does not expose skills routes)
+- **Approval modal** — gateway has no approval route; UI explains the limitation
 
 ## Useful commands
 
@@ -145,13 +124,11 @@ npm run tauri android dev
 npm run tauri ios dev
 ```
 
-Network permissions already allow local Hermes/Ollama loopback URLs used by the desktop sandbox. Emulators may need host-mapped addresses (documented when mobile work starts).
-
 ## Project layout
 
 ```text
 src/                 React application
-src/services/        Hermes HTTP + SSE client
+src/services/        Gateway HTTP client
 src/stores/          Zustand stores
 src/components/      UI primitives and feature panels
 src-tauri/           Tauri/Rust shell + capabilities
@@ -162,31 +139,31 @@ docs/                Architecture notes
 
 ## Configuration
 
-Copy `.env.example` to `.env` to override defaults:
-
-- `VITE_HERMES_BASE_URL` — local gateway or Tailscale HTTPS URL
-- `VITE_HERMES_API_KEY` — local sandbox key only; never set it in a browser-facing remote build
-- `VITE_OPERATOR_NAME` / `VITE_OPERATOR_ROLE` — sidebar identity (default Jules / humain)
-- `VITE_OLLAMA_BASE_URL` — optional; set only when probing a local Ollama instance
-- `VITE_HOST_METRICS_URL` — optional JSON host metrics API for CPU/RAM/disk
-
-Remote Hermes example:
+Copy `.env.example` to `.env`:
 
 ```bash
-VITE_HERMES_BASE_URL=https://homelab.tail042a16.ts.net:8445
+VITE_GATEWAY_BASE_URL=https://homelab.tail042a16.ts.net
 VITE_OPERATOR_NAME=Jules
 VITE_OPERATOR_ROLE=humain
+GATEWAY_API_KEY=…
 ```
 
-The remote URL is the Petasos proxy, not Hermes directly. It uses Tailscale identity headers and keeps the Hermes API key on the homelab. Do not expose `VITE_HERMES_API_KEY`, Glances credentials, Codex exporter tokens, or provider keys in a web build.
+Rules:
 
-For remote model selection, fetch `GET /petasos/model-policy` from the proxy. It advertises the only accepted modes: `auto`, `admin` (DeepSeek V4.1 Flash), and `dev` (Codex Terra). The proxy enforces this policy for run and session-chat requests.
+- Never rename `GATEWAY_API_KEY` to `VITE_*` — Vite would embed it in the browser bundle.
+- Browser `npm run dev` proxies `/__gateway` and injects the bearer key server-side.
+- Tauri reads `GATEWAY_API_KEY` from the process environment at runtime.
+- Do not set legacy `VITE_HERMES_*`, `VITE_HOST_METRICS_*`, `VITE_CODEX_USAGE_*`, or `VITE_OPENCODE_GO_*`.
 
-Leave `VITE_OLLAMA_BASE_URL` unset for remote mode. `npm run sandbox:init` is only needed for the local Docker stack.
+Gateway routes used by Petasos:
 
-Without `VITE_HOST_METRICS_URL`, the sidebar shows Hermes disk when available and leaves CPU/RAM empty. See [Host metrics](docs/host-metrics.md).
-
-Browser `npm run dev` proxies Hermes through `/__hermes` to avoid CORS. Tauri uses the HTTP plugin with scoped HTTPS permissions.
+- `GET /health`
+- `GET /v1/model-policy`
+- `POST /v1/runs`
+- `GET /v1/runs/{id}`
+- `GET /v1/metrics/overview`
+- `GET /v1/usage/codex`
+- `GET /v1/usage/opencode-go`
 
 ## Documentation
 

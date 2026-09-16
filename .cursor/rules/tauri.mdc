@@ -7,6 +7,7 @@ alwaysApply: false
 # Tauri
 
 - Keep network access scoped in `capabilities/default.json`.
-- Allow local Hermes/Ollama URLs plus explicit remote hosts (e.g. Tailscale `*.ts.net`).
+- Allow Tailscale `*.ts.net` hosts for the homelab gateway.
 - Prefer frontend HTTP via the Tauri HTTP plugin when webview CORS is insufficient.
+- Load `GATEWAY_API_KEY` at runtime from the process environment; never embed it as `VITE_*`.
 - Do not widen filesystem or shell permissions without documenting why in `docs/`.

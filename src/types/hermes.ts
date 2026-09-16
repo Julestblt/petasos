@@ -2,6 +2,18 @@ export type ConnectionState = 'unknown' | 'online' | 'degraded' | 'offline'
 
 export type ChatRole = 'user' | 'assistant' | 'system'
 
+export type ModelMode = 'auto' | 'admin' | 'dev'
+
+export interface ModelPolicy {
+  id: ModelMode
+  label: string
+  description: string
+}
+
+export interface ModelPolicyResponse {
+  modes: ModelPolicy[]
+}
+
 export interface ChatMessage {
   id: string
   role: ChatRole
@@ -36,34 +48,10 @@ export interface HermesRun {
   }
 }
 
-export interface HermesSession {
-  id: string
-  title?: string | null
-  model?: string | null
-  started_at?: number
-  message_count?: number
-  input_tokens?: number
-  output_tokens?: number
-  estimated_cost_usd?: number | null
-  actual_cost_usd?: number | null
-}
-
-export interface HermesSessionMessage {
-  id?: string
-  role: ChatRole
-  content: string
-  created_at?: string
-}
-
 export interface CreateRunRequest {
   input: string
+  mode?: ModelMode
   session_id?: string
-  instructions?: string
-  conversation_history?: Array<{ role: string; content: string }>
-  previous_response_id?: string
-  model?: string
-  provider?: string
-  model_options?: Record<string, unknown>
 }
 
 export interface CreateRunResponse {
@@ -124,10 +112,6 @@ export interface HealthSnapshot {
   hermesDetail?: string
   llmDetail?: string
   checkedAt: string
-}
-
-export interface HermesCapabilities {
-  [feature: string]: boolean | string | number | null | undefined
 }
 
 export type AppView = 'status' | 'console' | 'skills'

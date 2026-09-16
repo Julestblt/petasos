@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { hermesClient } from '@/services/hermesClient'
+import { gatewayClient } from '@/services/gatewayClient'
 import type { ConnectionState, HealthSnapshot } from '@/types/hermes'
 
 interface ConnectionStore {
@@ -30,7 +30,7 @@ export const useConnectionStore = create<ConnectionStore>((set) => ({
   refresh: async () => {
     set({ checking: true, error: undefined })
     try {
-      const snapshot = await hermesClient.checkHealth()
+      const snapshot = await gatewayClient.checkHealth()
       set({
         hermes: snapshot.hermes,
         llm: snapshot.llm,

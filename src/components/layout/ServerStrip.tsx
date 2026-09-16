@@ -38,7 +38,7 @@ export function ServerStrip() {
       </div>
       {metrics?.source === 'hermes-partial' || metrics?.source === 'unavailable' ? (
         <div className="mt-2 text-[10px] leading-snug text-muted-foreground/80">
-          {metrics.detail ?? 'Connect a metrics API for CPU/RAM'}
+          {metrics.detail ?? 'Gateway metrics unavailable'}
         </div>
       ) : null}
     </div>
