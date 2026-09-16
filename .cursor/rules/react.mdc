@@ -11,7 +11,7 @@ alwaysApply: false
 - Theme, radius, and color come from `src/index.css` CSS variables.
 - UI files use kebab-case (`operator-card.tsx`, `chat-page.tsx`).
 - Keep views thin; put orchestration in hooks/stores.
-- Live Orb is a companion in the sidebar footer. No click handlers, no
-  run-state coupling. Eyes may follow the pointer.
+- GazeHero is a companion in the sidebar footer. No click handlers for
+  navigation. Drive `state` from chat (`thinking` while sending).
 - Chat stream shows tool actions live via `ActionStream`.
 - One shell. Do not reintroduce a v1 / v2 split.

@@ -82,7 +82,7 @@ SSE mapping:
 - English-only source and docs
 - No inline comments; names and structure carry intent
 - Small kebab-case UI files; compose shadcn primitives
-- Single shell: shadcn sidebar, Live Orb companion, HUD telemetry in the
+- Single shell: shadcn sidebar, GazeHero companion, HUD telemetry in the
   footer, conversations in the rail
 - Tokens live in `src/index.css`; do not fork a second theme
 - Prefer updating docs/rules when architecture changes

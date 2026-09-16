@@ -124,3 +124,126 @@
     font-family: var(--font-display);
   }
 }
+
+@layer components {
+  .gaze-glow-pulse {
+    animation: gaze-glow-pulse 1.6s ease-in-out infinite;
+  }
+
+  .gaze-hero-attention {
+    animation: gaze-attention 0.9s ease-in-out 1;
+  }
+
+  .gaze-hero-success {
+    animation: gaze-success 0.7s ease-out 1;
+  }
+
+  .gaze-eye-thinking {
+    animation: gaze-eye-blink 1.1s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  .gaze-orbit {
+    border: 1px solid color-mix(in oklch, var(--primary) 35%, transparent);
+    animation: gaze-orbit-spin 2.4s linear infinite;
+  }
+
+  .gaze-spark {
+    top: 50%;
+    left: 50%;
+    box-shadow: 0 0 8px color-mix(in oklch, var(--primary) 55%, transparent);
+  }
+
+  .gaze-spark-a {
+    animation: gaze-spark-orbit 1.8s linear infinite;
+  }
+
+  .gaze-spark-b {
+    animation: gaze-spark-orbit 2.2s linear infinite reverse;
+    animation-delay: -0.4s;
+  }
+
+  .gaze-spark-c {
+    animation: gaze-spark-orbit 2.8s linear infinite;
+    animation-delay: -1.1s;
+  }
+}
+
+@keyframes gaze-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes gaze-attention {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes gaze-success {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  35% {
+    transform: scale(1.08);
+    filter: brightness(1.15);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes gaze-eye-blink {
+  0%,
+  42%,
+  58%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.18);
+  }
+}
+
+@keyframes gaze-orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gaze-spark-orbit {
+  0% {
+    transform: rotate(0deg) translateX(calc(var(--gaze-size) * 0.72))
+      rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(calc(var(--gaze-size) * 0.72))
+      rotate(-360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gaze-glow-pulse,
+  .gaze-hero-attention,
+  .gaze-hero-success,
+  .gaze-eye-thinking,
+  .gaze-orbit,
+  .gaze-spark-a,
+  .gaze-spark-b,
+  .gaze-spark-c {
+    animation: none !important;
+  }
+}

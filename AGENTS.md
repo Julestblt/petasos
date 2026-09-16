@@ -16,7 +16,7 @@ Working agreements:
 - Keep modules small and readable
 - Evolve docs and Cursor rules when the architecture changes
 - Prefer Tauri-friendly SPA patterns (no SSR)
-- Single shadcn shell; Live Orb is a companion only
+- Single shadcn shell; GazeHero is a companion only
 - Theme tokens live in `src/index.css`
 
 Remote defaults:

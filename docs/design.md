@@ -9,9 +9,10 @@ Chat is the product. The operator talks to Hermes through
 `homelab-gateway`, lists conversations, and watches tool actions land in
 real time. Status and skills are secondary rooms, not a second app.
 
-The Live Orb is a companion, not a control. It sits to the left of the
-operator name in the sidebar footer. Eyes follow the pointer. It never
-navigates, never sends, never represents run state.
+GazeHero is a companion, not a control. It sits left of the operator
+name in the sidebar footer. Eyes follow the pointer. Gaze state maps to
+Hermes: `thinking` while a turn streams, brief `success` on finish,
+`attention` while loading history, otherwise `idle`. It never navigates.
 
 ## Visual system
 
@@ -37,15 +38,17 @@ docs, and source stay English. Operator role may remain `humain` via env.
 ## Layout
 
 ```text
-┌──────── sidebar 18rem ────────┬──────── inset ────────┐
-│ Petasos                       │ trigger · title       │
-│ Chat / Status / Skills        ├───────────────────────┤
-│ Search + new chat             │                       │
-│ Conversation list             │  Ask Hermes / stream  │
-│ Quotas · host · servers       │  live actions         │
-│ [orb] Jules · humain  ☀ ☾ ⚙  │  composer             │
-└───────────────────────────────┴───────────────────────┘
+┌──────── sidebar ────────┬──────── inset ────────┐
+│ Petasos          [⟨]    │ [⟩] title             │
+│ Search + new chat       ├───────────────────────┤
+│ Conversation list       │  Ask Hermes / stream  │
+│ Quotas · host · servers │  live actions         │
+│ [orb] Jules · humain    │  composer             │
+└─────────────────────────┴───────────────────────┘
 ```
+
+Sidebar is conversations only. Status and Skills open from the
+operator settings menu, not from primary nav.
 
 Sidebar footer matches the dense HUD the operator already uses: quota
 meters, a single gateway host, service counts, then identity. Chat is a

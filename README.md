@@ -88,10 +88,12 @@ npm run sandbox:reset
 - **Chat** (`/`) — conversation list in the sidebar, Hermes replies, live
   action stream, model + reasoning picker, SSE turns
 - **Status** (`/status`) — gateway health, model catalogue, host metrics
-- **Skills** (`/skills`) — local scaffold (gateway skills routes land next)
+  (via operator settings)
+- **Skills** (`/skills`) — local scaffold (via operator settings)
 
-The Live Orb in the sidebar footer is a companion next to the operator
-name. It does not control the app.
+The sidebar is conversations-only. GazeHero in the footer is a companion
+next to the operator name; it reflects Hermes run state and does not
+navigate.
 
 ## Useful commands
 
