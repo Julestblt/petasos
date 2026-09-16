@@ -19,7 +19,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="gap-3 px-3 pt-3 group-data-[collapsible=icon]:px-2">
+      <SidebarHeader className="gap-2 px-3 pt-3 group-data-[collapsible=icon]:px-2">
         <div className="flex items-center gap-2 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-2">
           <BrandMark size={18} className="shrink-0" />
           <span className="min-w-0 flex-1 truncate font-display text-sm tracking-tight group-data-[collapsible=icon]:hidden">
@@ -35,9 +35,13 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="min-h-0 flex-1 overflow-hidden px-0 group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0">
+      <SidebarSeparator className="mx-0 group-data-[collapsible=icon]:hidden" />
+
+      <SidebarContent className="min-h-0 flex-1 overflow-hidden px-0 pt-2 group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0">
         <ConversationList />
       </SidebarContent>
+
+      <SidebarSeparator className="mx-0 group-data-[collapsible=icon]:hidden" />
 
       <SidebarFooter className="mt-auto gap-3 p-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:p-2">
         <div className="group-data-[collapsible=icon]:hidden">

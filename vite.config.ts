@@ -34,6 +34,10 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(rootDir, './src'),
       },
+      dedupe: ['react', 'react-dom'],
+    },
+    optimizeDeps: {
+      include: ['cmdk', 'react', 'react-dom', 'react/jsx-runtime'],
     },
     server: {
       port: 5173,

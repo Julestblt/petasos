@@ -4,10 +4,10 @@ import {
   MessageSquarePlus,
   MoreHorizontal,
   Pin,
-  Search,
   Trash2,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { ConversationSearch } from '@/components/chat/conversation-search'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -15,7 +15,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -24,6 +23,7 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from '@/components/ui/sidebar'
 import { useConversationsStore } from '@/stores/conversationsStore'
 import type { Conversation } from '@/types/hermes'
@@ -46,25 +46,15 @@ function groupLabel(ts?: number): string {
 export function ConversationList() {
   const conversations = useConversationsStore((state) => state.conversations)
   const activeId = useConversationsStore((state) => state.activeId)
-  const filter = useConversationsStore((state) => state.filter)
   const loading = useConversationsStore((state) => state.loading)
-  const setFilter = useConversationsStore((state) => state.setFilter)
   const select = useConversationsStore((state) => state.select)
   const togglePin = useConversationsStore((state) => state.togglePin)
   const remove = useConversationsStore((state) => state.remove)
   const clearActive = useConversationsStore((state) => state.clearActive)
   const navigate = useNavigate()
 
-  const filtered = useMemo(() => {
-    const q = filter.trim().toLowerCase()
-    if (!q) return conversations
-    return conversations.filter((item) =>
-      (item.title ?? item.id).toLowerCase().includes(q),
-    )
-  }, [conversations, filter])
-
-  const pinned = filtered.filter((item) => item.pinned)
-  const unpinned = filtered.filter((item) => !item.pinned)
+  const pinned = conversations.filter((item) => item.pinned)
+  const unpinned = conversations.filter((item) => !item.pinned)
   const groups = useMemo(() => {
     const map = new Map<string, Conversation[]>()
     for (const item of unpinned) {
@@ -78,15 +68,9 @@ export function ConversationList() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1.5 px-2 pb-2">
-        <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={filter}
-            onChange={(event) => setFilter(event.target.value)}
-            placeholder="Search"
-            className="h-8 bg-transparent pl-8 text-xs"
-          />
+      <div className="flex items-center gap-1.5 px-3 pb-3">
+        <div className="min-w-0 flex-1">
+          <ConversationSearch />
         </div>
         <Button
           size="icon"
@@ -101,13 +85,17 @@ export function ConversationList() {
           <MessageSquarePlus className="size-4" />
         </Button>
       </div>
-      {loading && filtered.length === 0 ? (
+
+      <SidebarSeparator className="mx-0 mb-1" />
+
+      {loading && conversations.length === 0 ? (
         <div className="flex items-center gap-2 px-4 py-3 text-xs text-muted-foreground">
           <LoaderCircle className="size-3 animate-spin" />
           Loading…
         </div>
       ) : null}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+
+      <div className="min-h-0 flex-1 overflow-y-auto pb-2">
         {pinned.length > 0 ? (
           <Section title="Pinned">
             {pinned.map((item) => (
@@ -125,24 +113,29 @@ export function ConversationList() {
             ))}
           </Section>
         ) : null}
-        {[...groups.entries()].map(([label, items]) => (
-          <Section key={label} title={label}>
-            {items.map((item) => (
-              <ConversationRow
-                key={item.id}
-                item={item}
-                active={item.id === activeId}
-                onSelect={() => {
-                  void select(item.id)
-                  navigate('/')
-                }}
-                onPin={() => void togglePin(item.id)}
-                onDelete={() => void remove(item.id)}
-              />
-            ))}
-          </Section>
+        {[...groups.entries()].map(([label, items], index) => (
+          <div key={label}>
+            {(pinned.length > 0 || index > 0) && (
+              <SidebarSeparator className="mx-3 my-1" />
+            )}
+            <Section title={label}>
+              {items.map((item) => (
+                <ConversationRow
+                  key={item.id}
+                  item={item}
+                  active={item.id === activeId}
+                  onSelect={() => {
+                    void select(item.id)
+                    navigate('/')
+                  }}
+                  onPin={() => void togglePin(item.id)}
+                  onDelete={() => void remove(item.id)}
+                />
+              ))}
+            </Section>
+          </div>
         ))}
-        {filtered.length === 0 && !loading ? (
+        {conversations.length === 0 && !loading ? (
           <p className="px-4 py-6 text-xs text-muted-foreground">
             No conversations yet
           </p>
