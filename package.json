@@ -15,6 +15,7 @@
     "sandbox:reset": "bash sandbox/reset-env.sh"
   },
   "dependencies": {
+    "@base-ui/react": "^1.8.0",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-scroll-area": "^1.2.18",
     "@radix-ui/react-separator": "^1.1.15",
@@ -26,6 +27,7 @@
     "clsx": "^2.1.1",
     "highlight.js": "^11.12.0",
     "lucide-react": "^1.44.0",
+    "radix-ui": "^1.6.7",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-markdown": "^10.1.0",

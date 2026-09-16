@@ -8,11 +8,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { gatewayClient } from '@/services/gatewayClient'
 import { useApprovalStore } from '@/stores/approvalStore'
+import type { ApprovalChoice } from '@/types/hermes'
 
 export function ApprovalModal() {
   const pending = useApprovalStore((state) => state.pending)
+  const resolving = useApprovalStore((state) => state.resolving)
+  const setResolving = useApprovalStore((state) => state.setResolving)
   const clear = useApprovalStore((state) => state.clear)
+
+  async function resolve(choice: ApprovalChoice) {
+    if (!pending) return
+    setResolving(true)
+    try {
+      await gatewayClient.resolveApproval(pending.runId, choice)
+      clear()
+    } catch {
+      setResolving(false)
+    }
+  }
 
   return (
     <Dialog open={Boolean(pending)} onOpenChange={(open) => !open && clear()}>
@@ -20,11 +35,11 @@ export function ApprovalModal() {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldAlert className="h-5 w-5 text-amber-300" />
-            Approval unavailable
+            Approval required
           </DialogTitle>
           <DialogDescription>
-            The homelab gateway does not expose Hermes approval routes. Resolve
-            the run on the host if it is waiting for a decision.
+            {pending?.description ??
+              'Hermes is waiting for a manual decision before continuing.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -37,8 +52,31 @@ export function ApprovalModal() {
           </pre>
         </div>
 
-        <DialogFooter>
-          <Button onClick={clear}>Dismiss</Button>
+        <DialogFooter className="flex-wrap gap-2 sm:justify-end">
+          <Button
+            variant="outline"
+            disabled={resolving}
+            onClick={() => void resolve('deny')}
+          >
+            Deny
+          </Button>
+          <Button
+            variant="outline"
+            disabled={resolving}
+            onClick={() => void resolve('once')}
+          >
+            Once
+          </Button>
+          <Button
+            variant="outline"
+            disabled={resolving}
+            onClick={() => void resolve('session')}
+          >
+            Session
+          </Button>
+          <Button disabled={resolving} onClick={() => void resolve('always')}>
+            Always
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

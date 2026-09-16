@@ -8,7 +8,6 @@ export const OPERATOR_ROLE = import.meta.env.VITE_OPERATOR_ROLE ?? 'humain'
 export const HEALTH_POLL_INTERVAL_MS = 5_000
 export const METRICS_POLL_INTERVAL_MS = 5_000
 export const QUOTAS_POLL_INTERVAL_MS = 30_000
-export const RUN_POLL_INTERVAL_MS = 1_500
 
 export function isTauriRuntime(): boolean {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window

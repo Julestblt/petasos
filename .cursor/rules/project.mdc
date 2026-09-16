@@ -9,6 +9,7 @@ alwaysApply: true
 - No inline comments. Prefer clear names and small modules.
 - Keep files focused; split stores, services, and UI by feature.
 - Remote I/O goes through `homelab-gateway` only; never call Hermes, Glances, or Codex exporters directly from the client.
+- Chat uses conversations + SSE (`model_id`, optional `reasoning_effort`). Never send raw `provider` / `model` / `model_options`.
 - Never put secrets in `VITE_*` env vars. Use `GATEWAY_API_KEY` at runtime (Vite proxy or Tauri).
 - Update `README.md` and `docs/` when behavior or setup changes.
 - Update `.cursor/rules/` when conventions change.

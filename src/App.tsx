@@ -1,8 +1,9 @@
 import { AppShell } from '@/components/layout/AppShell'
 import { ApprovalModal } from '@/components/approval/ApprovalModal'
 import { useConnectionHealth } from '@/hooks/useConnectionHealth'
+import { useConversationsBootstrap } from '@/hooks/useConversationsBootstrap'
 import { useHostMetrics } from '@/hooks/useHostMetrics'
-import { useModelPolicy } from '@/hooks/useModelPolicy'
+import { useModelCatalog } from '@/hooks/useModelCatalog'
 import { useQuotas } from '@/hooks/useQuotas'
 import { useUiStore } from '@/stores/uiStore'
 import { ConsoleView } from '@/views/ConsoleView'
@@ -13,7 +14,8 @@ export default function App() {
   useConnectionHealth()
   useHostMetrics()
   useQuotas()
-  useModelPolicy()
+  useModelCatalog()
+  useConversationsBootstrap()
   const view = useUiStore((state) => state.view)
 
   return (

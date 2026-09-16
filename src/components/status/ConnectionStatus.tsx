@@ -34,7 +34,7 @@ export function ConnectionStatus() {
       <div className="space-y-2">
         <h1 className="font-display text-3xl tracking-[-0.04em]">Connection</h1>
         <p className="max-w-xl text-sm text-muted-foreground">
-          Homelab gateway readiness and advertised model modes.
+          Homelab gateway readiness and live model catalogue.
         </p>
       </div>
 
@@ -48,8 +48,8 @@ export function ConnectionStatus() {
         />
         <StatusRow
           icon={<Sparkles className="h-4 w-4" />}
-          title="Model modes"
-          subtitle="GET /v1/model-policy"
+          title="Models"
+          subtitle="GET /v1/models"
           state={llm}
           detail={llmDetail}
         />

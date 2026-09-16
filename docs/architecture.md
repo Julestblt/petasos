@@ -1,7 +1,7 @@
 # Architecture
 
-Petasos is a thin observability client for the private homelab gateway. The UI
-talks only to documented gateway routes; Hermes, Glances, and the Codex exporter
+Petasos is a thin Mission Control client for the private homelab gateway. The UI
+talks only to documented gateway routes; Hermes, Glances, and usage exporters
 stay loopback-only behind the gateway.
 
 ## Runtime topology
@@ -9,9 +9,9 @@ stay loopback-only behind the gateway.
 ```text
 ┌────────────────────────────┐
 │ Petasos (Tauri + React)    │
-│  Status / Console / Skills │
+│  Chat / Status / Skills    │
 └──────────────┬─────────────┘
-               │ REST (Bearer gateway key)
+               │ REST + SSE (Bearer gateway key)
                ▼
 ┌────────────────────────────┐
 │ Tailscale Serve :443       │
@@ -24,54 +24,60 @@ stay loopback-only behind the gateway.
 └──────┬──────────┬──────────┘
        │          │
        ▼          ▼
-  Hermes :8642   Glances / Codex exporter
+  Hermes :8642   Glances / Codex / OpenCode Go
 ```
 
 ## Frontend modules
 
 | Path | Responsibility |
 | --- | --- |
-| `src/services/gatewayClient.ts` | Auth’d REST + run polling |
+| `src/services/gatewayClient.ts` | Models, conversations, SSE stream, approvals |
 | `src/services/hostMetricsService.ts` | `GET /v1/metrics/overview` |
 | `src/services/codexUsageService.ts` | `GET /v1/usage/codex` |
 | `src/services/openCodeGoUsageService.ts` | `GET /v1/usage/opencode-go` |
-| `src/stores/*` | Zustand slices for connection, chat, timeline, modes, quotas |
-| `src/hooks/useRunStream.ts` | Create run + poll until terminal status |
-| `src/components/*` | Presentational shells split by feature |
+| `src/stores/*` | Zustand slices for chat, conversations, models, quotas |
+| `src/hooks/useConversationStream.ts` | Send turn + fan out SSE into stores |
+| `src/components/console/*` | Chat UI, Thinking panel, model picker, history |
 
 ## Gateway integration
 
-Control plane used by Petasos:
+Primary chat plane:
+
+- `GET /v1/models`
+- `GET/POST /v1/conversations`
+- `GET /v1/conversations/{id}/messages`
+- `POST /v1/conversations/{id}/messages/stream` (SSE)
+- `POST /v1/conversations/{id}/model`
+- `POST /v1/runs/{id}/approval`
+
+Observability:
 
 - `GET /health`
-- `GET /v1/model-policy`
-- `POST /v1/runs`
-- `GET /v1/runs/{id}`
 - `GET /v1/metrics/overview`
 - `GET /v1/usage/codex`
 - `GET /v1/usage/opencode-go`
 
-Clients never send `provider`, `model`, or `model_options`. They select a mode
-(`auto` / `admin` / `dev`) and the gateway injects the upstream model target.
+Clients never send `provider`, `model`, or `model_options`. They send opaque
+`model_id` values from `/v1/models`, plus optional `reasoning_effort`
+(`low` / `medium` / `high`) when `capabilities.reasoning` is true.
 
-There is no SSE stream, no sessions API, and no approval route on the gateway.
-Petasos polls run status and uses a local dashboard `session_id`.
+SSE mapping:
+
+- `assistant.delta` → Hermes bubble text
+- `tool.*` → collapsed Thinking… panel
+- `approval.request` → approval dialog (`once` / `session` / `always` / `deny`)
+- `assistant.completed` / `run.completed` → finalize turn
 
 ## Auth
 
 - Browser `npm run dev`: Vite proxies `/__gateway` and injects `Authorization`
   from process env `GATEWAY_API_KEY` (never `VITE_*`).
-- Tauri: Rust reads `GATEWAY_API_KEY` at runtime and exposes it via
-  `gateway_api_key` for authenticated HTTP plugin calls.
-
-## Tauri boundary
-
-`src-tauri/capabilities/default.json` scopes HTTP to Tailscale `*.ts.net` hosts
-and local sandbox ports. Do not embed the gateway key in the frontend bundle.
+- Tauri: Rust reads `GATEWAY_API_KEY` at runtime via `gateway_api_key`.
 
 ## Design principles
 
 - English-only source and docs
 - No inline comments; names and structure carry intent
 - Small files with one responsibility
+- Chat-first Mission Control layout; workspace deferred
 - Prefer updating docs/rules when architecture changes

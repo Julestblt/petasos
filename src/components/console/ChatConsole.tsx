@@ -1,36 +1,42 @@
+import { ConversationSidebar } from '@/components/console/ConversationSidebar'
 import { MessageList } from '@/components/console/MessageList'
 import { CommandInput } from '@/components/console/CommandInput'
-import { ExecutionTimeline } from '@/components/timeline/ExecutionTimeline'
-import { startRunWithStream } from '@/hooks/useRunStream'
+import { sendConversationMessage } from '@/hooks/useConversationStream'
 import { useChatStore } from '@/stores/chatStore'
 import { useConnectionStore } from '@/stores/connectionStore'
-import { useTimelineStore } from '@/stores/timelineStore'
-import { cn } from '@/lib/utils'
+import { useConversationsStore } from '@/stores/conversationsStore'
 
 export function ChatConsole() {
   const messages = useChatStore((state) => state.messages)
   const isSending = useChatStore((state) => state.isSending)
+  const loadingMessages = useChatStore((state) => state.loadingMessages)
   const hermes = useConnectionStore((state) => state.hermes)
-  const collapsed = useTimelineStore((state) => state.collapsed)
+  const activeId = useConversationsStore((state) => state.activeId)
+  const conversations = useConversationsStore((state) => state.conversations)
+  const title =
+    conversations.find((item) => item.id === activeId)?.title?.trim() ||
+    (activeId ? 'Conversation' : 'New chat')
 
   return (
     <div className="flex h-full min-h-0">
+      <ConversationSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex h-12 items-center border-b border-border px-5">
+          <div className="truncate text-sm text-muted-foreground">{title}</div>
+        </div>
         <div className="min-h-0 flex-1">
-          <MessageList messages={messages} />
+          {loadingMessages ? (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              Loading messages…
+            </div>
+          ) : (
+            <MessageList messages={messages} />
+          )}
         </div>
         <CommandInput
           disabled={isSending || hermes === 'offline'}
-          onSubmit={startRunWithStream}
+          onSubmit={sendConversationMessage}
         />
-      </div>
-      <div
-        className={cn(
-          'shrink-0 overflow-hidden border-l border-border/80 transition-[width] duration-200',
-          collapsed ? 'w-0 border-l-0' : 'w-[340px]',
-        )}
-      >
-        {!collapsed ? <ExecutionTimeline /> : null}
       </div>
     </div>
   )

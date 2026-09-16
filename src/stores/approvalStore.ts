@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ApprovalDecision, ApprovalRequest } from '@/types/hermes'
+import type { ApprovalChoice, ApprovalRequest } from '@/types/hermes'
 
 interface ApprovalStore {
   pending?: ApprovalRequest
@@ -16,4 +16,4 @@ export const useApprovalStore = create<ApprovalStore>((set) => ({
   clear: () => set({ pending: undefined, resolving: false }),
 }))
 
-export type { ApprovalDecision }
+export type { ApprovalChoice }

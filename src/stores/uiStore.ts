@@ -7,6 +7,6 @@ interface UiStore {
 }
 
 export const useUiStore = create<UiStore>((set) => ({
-  view: 'status',
+  view: 'console',
   setView: (view) => set({ view }),
 }))

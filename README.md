@@ -12,7 +12,7 @@ Petasos is a Tauri v2 + React desktop/mobile client. In remote mode it talks onl
 | UI | React 19 + TypeScript + Vite |
 | Styling | Tailwind CSS v4 + shadcn-style primitives |
 | State | Zustand |
-| Protocol | HTTP REST against `homelab-gateway` (`/v1/runs`, metrics, usage) |
+| Protocol | HTTP REST + SSE against `homelab-gateway` conversations/models |
 | Sandbox | Docker Compose (`sandbox/`) for local Hermes/Ollama |
 
 ## Prerequisites
@@ -75,8 +75,6 @@ Remote Petasos does **not** call these ports over Tailscale. They remain host-lo
 
 ```bash
 npm run sandbox:init
-# or
-bash sandbox/init-sandbox.sh
 ```
 
 ### Reset memory
@@ -85,21 +83,11 @@ bash sandbox/init-sandbox.sh
 npm run sandbox:reset
 ```
 
-### Endpoints (local sandbox only)
-
-| Service | URL |
-| --- | --- |
-| Hermes API | `http://127.0.0.1:8642` |
-| Hermes health | `http://127.0.0.1:8642/health` |
-| Hermes dashboard | `http://127.0.0.1:9119` |
-| Ollama | `http://127.0.0.1:11434` |
-
 ## Application views
 
-- **Status** — probes gateway health + model policy
-- **Console** — command input, mode picker (`auto` / `admin` / `dev`), Markdown responses, run timeline from polling
-- **Skills & Memory** — local scaffold (gateway does not expose skills routes)
-- **Approval modal** — gateway has no approval route; UI explains the limitation
+- **Chat** — conversation history, Hermes replies, Thinking… tool panel, model + reasoning picker, SSE turns
+- **Status** — gateway health, model catalogue probe, host metrics
+- **Skills** — local scaffold (gateway skills routes land next)
 
 ## Useful commands
 
@@ -113,33 +101,7 @@ npm run sandbox:init  # Boot Docker sandbox
 npm run sandbox:reset # Wipe Hermes memory volume
 ```
 
-## Mobile
-
-Tauri v2 mobile targets share this frontend. After platform tooling is installed:
-
-```bash
-npm run tauri android init
-npm run tauri ios init
-npm run tauri android dev
-npm run tauri ios dev
-```
-
-## Project layout
-
-```text
-src/                 React application
-src/services/        Gateway HTTP client
-src/stores/          Zustand stores
-src/components/      UI primitives and feature panels
-src-tauri/           Tauri/Rust shell + capabilities
-sandbox/             Docker Compose + lifecycle scripts
-.cursor/rules/       Agent/editor conventions
-docs/                Architecture notes
-```
-
 ## Configuration
-
-Copy `.env.example` to `.env`:
 
 ```bash
 VITE_GATEWAY_BASE_URL=https://homelab.tail042a16.ts.net
@@ -150,17 +112,20 @@ GATEWAY_API_KEY=…
 
 Rules:
 
-- Never rename `GATEWAY_API_KEY` to `VITE_*` — Vite would embed it in the browser bundle.
+- Never rename `GATEWAY_API_KEY` to `VITE_*`.
 - Browser `npm run dev` proxies `/__gateway` and injects the bearer key server-side.
 - Tauri reads `GATEWAY_API_KEY` from the process environment at runtime.
-- Do not set legacy `VITE_HERMES_*`, `VITE_HOST_METRICS_*`, `VITE_CODEX_USAGE_*`, or `VITE_OPENCODE_GO_*`.
+- Send opaque `model_id` values from `GET /v1/models`; never raw `provider` / `model` / `model_options`.
 
 Gateway routes used by Petasos:
 
 - `GET /health`
-- `GET /v1/model-policy`
-- `POST /v1/runs`
-- `GET /v1/runs/{id}`
+- `GET /v1/models`
+- `GET/POST /v1/conversations`
+- `GET /v1/conversations/{id}/messages`
+- `POST /v1/conversations/{id}/messages/stream`
+- `POST /v1/conversations/{id}/model`
+- `POST /v1/runs/{id}/approval`
 - `GET /v1/metrics/overview`
 - `GET /v1/usage/codex`
 - `GET /v1/usage/opencode-go`

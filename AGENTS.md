@@ -1,7 +1,7 @@
 # Agent guide
 
-Petasos is Mission Control for a Docker-sandboxed Hermes Agent, reached through
-the private `homelab-gateway` on Tailscale.
+Petasos is Mission Control for Hermes, reached through the private
+`homelab-gateway` on Tailscale.
 
 Read first:
 
@@ -17,12 +17,14 @@ Working agreements:
 - Evolve docs and Cursor rules when the architecture changes
 - Prefer Tauri-friendly SPA patterns (no SSR)
 
-Remote default endpoints:
+Remote defaults:
 
 - Gateway `https://homelab.tail042a16.ts.net`
 - Auth `Authorization: Bearer <GATEWAY_API_KEY>` (never `VITE_*`)
+- Chat via `/v1/conversations` + `/messages/stream`
+- Models via `/v1/models` (`model_id` + optional `reasoning_effort`)
 
-Local sandbox (optional, behind Docker only):
+Local sandbox (optional Docker only):
 
 - Hermes `http://127.0.0.1:8642`
 - Ollama `http://127.0.0.1:11434`

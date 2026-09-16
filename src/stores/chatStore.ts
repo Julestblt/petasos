@@ -1,24 +1,30 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import type { ChatMessage } from '@/types/hermes'
+import type { ChatMessage, ThinkingItem } from '@/types/hermes'
 
 interface ChatStore {
-  sessionId?: string
+  conversationId?: string
   messages: ChatMessage[]
   activeRunId?: string
   isSending: boolean
+  loadingMessages: boolean
+  setConversationId: (id?: string) => void
+  setMessages: (messages: ChatMessage[]) => void
   addMessage: (message: ChatMessage) => void
   appendAssistantDelta: (messageId: string, delta: string) => void
+  appendThinking: (messageId: string, item: ThinkingItem) => void
   finalizeAssistant: (messageId: string, content?: string) => void
   setActiveRunId: (runId?: string) => void
-  setSessionId: (sessionId?: string) => void
   setSending: (value: boolean) => void
+  setLoadingMessages: (value: boolean) => void
   clear: () => void
 }
 
-export const useChatStore = create<ChatStore>()(persist((set) => ({
+export const useChatStore = create<ChatStore>((set) => ({
   messages: [],
   isSending: false,
+  loadingMessages: false,
+  setConversationId: (id) => set({ conversationId: id }),
+  setMessages: (messages) => set({ messages }),
   addMessage: (message) =>
     set((state) => ({ messages: [...state.messages, message] })),
   appendAssistantDelta: (messageId, delta) =>
@@ -26,6 +32,18 @@ export const useChatStore = create<ChatStore>()(persist((set) => ({
       messages: state.messages.map((message) =>
         message.id === messageId
           ? { ...message, content: `${message.content}${delta}`, streaming: true }
+          : message,
+      ),
+    })),
+  appendThinking: (messageId, item) =>
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === messageId
+          ? {
+              ...message,
+              thinking: [...(message.thinking ?? []), item],
+              streaming: true,
+            }
           : message,
       ),
     })),
@@ -42,19 +60,14 @@ export const useChatStore = create<ChatStore>()(persist((set) => ({
       ),
     })),
   setActiveRunId: (runId) => set({ activeRunId: runId }),
-  setSessionId: (sessionId) => set({ sessionId }),
   setSending: (value) => set({ isSending: value }),
+  setLoadingMessages: (value) => set({ loadingMessages: value }),
   clear: () =>
     set({
-      sessionId: undefined,
+      conversationId: undefined,
       messages: [],
       activeRunId: undefined,
       isSending: false,
+      loadingMessages: false,
     }),
-}), {
-  name: 'petasos-chat',
-  partialize: (state) => ({
-    sessionId: state.sessionId,
-    messages: state.messages,
-  }),
 }))
