@@ -13,6 +13,7 @@ import type {
   GatewayModel,
   HealthSnapshot,
   HermesRun,
+  HermesSkill,
   ReasoningEffort,
   RunStatus,
   StreamEvent,
@@ -45,6 +46,20 @@ function createId(prefix: string): string {
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : null
+}
+
+function normalizeHermesSkill(raw: Record<string, unknown>): HermesSkill | null {
+  const name = typeof raw.name === 'string' ? raw.name.trim() : ''
+  if (!name) return null
+  return {
+    id: name,
+    name,
+    description: typeof raw.description === 'string' ? raw.description : '',
+    category:
+      typeof raw.category === 'string' && raw.category.trim()
+        ? raw.category.trim()
+        : 'uncategorized',
+  }
 }
 
 function normalizeRun(payload: Record<string, unknown>): HermesRun {
@@ -220,6 +235,19 @@ export class GatewayClient {
   async listModels(): Promise<GatewayModel[]> {
     const payload = await this.requestJson<{ data?: GatewayModel[] }>('/v1/models')
     return payload.data ?? []
+  }
+
+  async listHermesSkills(): Promise<HermesSkill[]> {
+    const payload = await this.requestJson<{ data?: unknown }>('/v1/hermes/skills')
+    const list = Array.isArray(payload.data) ? payload.data : []
+    return list
+      .map((item) => normalizeHermesSkill(asRecord(item) ?? {}))
+      .filter((item): item is HermesSkill => item != null)
+      .sort((a, b) => {
+        const byCategory = a.category.localeCompare(b.category)
+        if (byCategory !== 0) return byCategory
+        return a.name.localeCompare(b.name)
+      })
   }
 
   async listConversations(): Promise<Conversation[]> {

@@ -17,6 +17,12 @@ from `GET /v1/models`, plus optional `reasoning_effort`.
 | --- | --- | --- |
 | GET | `/health` | `checkHealth` |
 | GET | `/v1/models` | `listModels` |
+| GET | `/v1/hermes/skills` | `listHermesSkills` |
+
+`GET /v1/hermes/skills` returns the Hermes-installed skills overview only
+(`name`, `description`, `category`). The gateway does not expose Hermes
+filesystem or editable skill bodies; Petasos Skills is read-only until a
+dedicated notes/skills model exists.
 
 ## Conversations
 

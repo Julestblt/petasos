@@ -31,7 +31,8 @@ exporters stay loopback-only behind the gateway.
 
 | Path | Responsibility |
 | --- | --- |
-| `src/services/gatewayClient.ts` | Models, conversations, SSE stream, approvals |
+| `src/services/gatewayClient.ts` | Models, conversations, SSE stream, approvals, Hermes skills |
+| `src/services/skillsService.ts` | Hermes skills overview (`GET /v1/hermes/skills`) |
 | `src/services/hostMetricsService.ts` | `GET /v1/metrics/overview` |
 | `src/services/codexUsageService.ts` | `GET /v1/usage/codex` |
 | `src/services/openCodeGoUsageService.ts` | `GET /v1/usage/opencode-go` |

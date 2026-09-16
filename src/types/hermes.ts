@@ -147,12 +147,11 @@ export interface ApprovalRequest {
   createdAt: string
 }
 
-export interface SkillFile {
+export interface HermesSkill {
   id: string
   name: string
-  path: string
-  content: string
-  updatedAt: string
+  description: string
+  category: string
 }
 
 export interface HealthSnapshot {

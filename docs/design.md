@@ -49,7 +49,11 @@ docs, and source stay English. Operator role may remain `humain` via env.
 
 Sidebar primary nav lists Status, Skills, and future rooms via
 `SIDEBAR_NAV`. Conversations fill the scrollable middle. Status and
-Skills are no longer buried in the operator settings menu.
+Skills are no longer buried in the operator settings menu. The Skills
+room is a catalog: Hermes-installed skills from `GET /v1/hermes/skills`
+grouped by category, with search and filters. Overview fields only
+(name / description / category). Bodies stay read-only; there is no
+generic filesystem access through the gateway.
 
 Sidebar footer matches the dense HUD the operator already uses: quota
 meters, a single gateway host, service counts, then identity. Chat is a
