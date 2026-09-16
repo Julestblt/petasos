@@ -47,8 +47,9 @@ docs, and source stay English. Operator role may remain `humain` via env.
 └─────────────────────────┴───────────────────────┘
 ```
 
-Sidebar is conversations only. Status and Skills open from the
-operator settings menu, not from primary nav.
+Sidebar primary nav lists Status, Skills, and future rooms via
+`SIDEBAR_NAV`. Conversations fill the scrollable middle. Status and
+Skills are no longer buried in the operator settings menu.
 
 Sidebar footer matches the dense HUD the operator already uses: quota
 meters, a single gateway host, service counts, then identity. Chat is a

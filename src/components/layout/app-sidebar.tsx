@@ -1,6 +1,7 @@
 import { ConversationList } from '@/components/chat/conversation-list'
 import { BrandMark } from '@/components/brand/brand-mark'
 import { OperatorCard } from '@/components/layout/operator-card'
+import { SidebarNav } from '@/components/layout/sidebar-nav'
 import { SidebarTelemetry } from '@/components/layout/sidebar-telemetry'
 import {
   Sidebar,
@@ -35,9 +36,11 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
+      <SidebarNav />
+
       <SidebarSeparator className="mx-0 group-data-[collapsible=icon]:hidden" />
 
-      <SidebarContent className="min-h-0 flex-1 overflow-hidden px-0 pt-2 group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0">
+      <SidebarContent className="min-h-0 flex-1 gap-0 overflow-hidden px-0 group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0">
         <ConversationList />
       </SidebarContent>
 

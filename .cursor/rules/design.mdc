@@ -18,7 +18,8 @@ alwaysApply: false
   `src/components/ui/`.
 - GazeHero sits left of the operator name. Companion only; maps Hermes
   run state (`idle` / `attention` / `thinking` / `success`).
-- Sidebar is conversations-only; Status and Skills live in settings.
-- Sidebar footer holds quotas, host, gateway counts, then identity.
+- Sidebar primary nav (`SIDEBAR_NAV`) holds Status, Skills, and future
+  rooms; conversations fill the scrollable middle; footer holds quotas,
+  host, gateway counts, then identity.
 - Streaming turns keep `ActionStream` open so tool commands are visible
   as they start.

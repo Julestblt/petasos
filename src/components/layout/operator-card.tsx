@@ -14,7 +14,6 @@ import { GATEWAY_BASE_URL, OPERATOR_NAME, OPERATOR_ROLE } from '@/lib/constants'
 import { useChatStore } from '@/stores/chatStore'
 import { useThemeStore } from '@/stores/themeStore'
 import { Moon, Settings, Sun } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 
 const SUCCESS_MS = 1200
 
@@ -24,7 +23,6 @@ export function OperatorCard() {
   const isSending = useChatStore((state) => state.isSending)
   const loadingMessages = useChatStore((state) => state.loadingMessages)
   const collapsed = useSidebar().state === 'collapsed'
-  const navigate = useNavigate()
   const [gaze, setGaze] = useState<GazeState>('idle')
   const wasSending = useRef(false)
 
@@ -93,13 +91,6 @@ export function OperatorCard() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" side="top" className="w-56">
           <DropdownMenuLabel>Petasos</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => navigate('/status')}>
-            Status
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate('/skills')}>
-            Skills
-          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => void navigator.clipboard.writeText(GATEWAY_BASE_URL)}

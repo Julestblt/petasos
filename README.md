@@ -88,12 +88,11 @@ npm run sandbox:reset
 - **Chat** (`/`) — conversation list in the sidebar, Hermes replies, live
   action stream, model + reasoning picker, SSE turns
 - **Status** (`/status`) — gateway health, model catalogue, host metrics
-  (via operator settings)
-- **Skills** (`/skills`) — local scaffold (via operator settings)
+- **Skills** (`/skills`) — local scaffold
 
-The sidebar is conversations-only. GazeHero in the footer is a companion
-next to the operator name; it reflects Hermes run state and does not
-navigate.
+The sidebar opens with primary nav (Status, Skills, extensible), then a
+scrollable conversation list. GazeHero in the footer is a companion next
+to the operator name; it reflects Hermes run state and does not navigate.
 
 ## Useful commands
 

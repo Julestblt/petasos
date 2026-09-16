@@ -85,7 +85,7 @@ SSE mapping:
 - Never hand-edit `src/components/ui/*` (CLI only); custom widgets live
   outside `ui/` (e.g. GazeHero under `src/components/gaze/`)
 - Single shell: shadcn sidebar, GazeHero companion, HUD telemetry in the
-  footer, conversations in the rail
+  footer, primary nav + scrollable conversations in the rail
 - Tokens live in `src/index.css`; do not fork a second theme
 - Prefer updating docs/rules when architecture changes
 - Mixed `@radix-ui/*` / `radix-ui` / `@base-ui` imports in stock

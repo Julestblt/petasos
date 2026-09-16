@@ -68,7 +68,7 @@ export function ConversationList() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1.5 px-3 pb-3">
+      <div className="flex shrink-0 items-center gap-1.5 px-3 py-2">
         <div className="min-w-0 flex-1">
           <ConversationSearch />
         </div>
@@ -86,16 +86,16 @@ export function ConversationList() {
         </Button>
       </div>
 
-      <SidebarSeparator className="mx-0 mb-1" />
+      <SidebarSeparator className="mx-0 shrink-0" />
 
       {loading && conversations.length === 0 ? (
-        <div className="flex items-center gap-2 px-4 py-3 text-xs text-muted-foreground">
+        <div className="flex shrink-0 items-center gap-2 px-4 py-3 text-xs text-muted-foreground">
           <LoaderCircle className="size-3 animate-spin" />
           Loading…
         </div>
       ) : null}
 
-      <div className="min-h-0 flex-1 overflow-y-auto pb-2">
+      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-2">
         {pinned.length > 0 ? (
           <Section title="Pinned">
             {pinned.map((item) => (
