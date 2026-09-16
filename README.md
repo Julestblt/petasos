@@ -87,7 +87,7 @@ npm run sandbox:reset
 
 - **Chat** (`/`) — conversation list in the sidebar, Hermes replies, live
   action stream, model + reasoning picker, SSE turns
-- **Status** (`/status`) — gateway health, model catalogue, host metrics
+- **Status** (`/status`) — services, host meters, quotas, model catalogue, Hermes toolsets
 - **Skills** (`/skills`) — Hermes skills overview via gateway (read-only)
 
 The sidebar opens with primary nav (Status, Skills, extensible), then a

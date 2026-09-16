@@ -18,6 +18,8 @@ from `GET /v1/models`, plus optional `reasoning_effort`.
 | GET | `/health` | `checkHealth` |
 | GET | `/v1/models` | `listModels` |
 | GET | `/v1/hermes/skills` | `listHermesSkills` |
+| GET | `/v1/hermes/toolsets` | `listHermesToolsets` |
+| GET | `/v1/hermes/capabilities` | (Status / future) |
 
 `GET /v1/hermes/skills` returns the Hermes-installed skills overview only
 (`name`, `description`, `category`). The gateway does not expose Hermes
@@ -82,6 +84,18 @@ Approval choices: `once` | `session` | `always` | `deny`.
 | GET | `/v1/metrics/overview` | `hostMetricsService` |
 | GET | `/v1/usage/codex` | `codexUsageService` |
 | GET | `/v1/usage/opencode-go` | `openCodeGoUsageService` |
+
+`GET /v1/hermes/toolsets` and `GET /v1/hermes/capabilities` are Hermes
+overview routes (read-only). Status uses toolsets for the agent surface.
+
+### Not on the gateway yet
+
+Tailscale can list machines via
+`GET https://api.tailscale.com/api/v2/tailnet/{tailnet}/devices`
+(API key auth). Petasos must not call that from the client. When needed,
+add a dedicated gateway route such as `GET /v1/tailnet/devices` that keeps
+the Tailscale key server-side and returns a dashboard-safe device list
+(hostname, online, addresses, OS, lastSeen).
 
 Hermes loopback (`:8642`) and Ollama (`:11434`) stay behind the gateway in
 remote mode. Local Docker sandbox is optional and never called from the

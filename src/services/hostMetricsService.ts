@@ -9,8 +9,10 @@ function emptyMetrics(detail: string): HostMetrics {
     name: hostLabelFromGatewayUrl(),
     online: false,
     cpuPercent: null,
+    cpuCores: null,
     ramUsedGb: null,
     ramTotalGb: null,
+    ramPercent: null,
     diskPercent: null,
     source: 'unavailable',
     updatedAt: new Date().toISOString(),
@@ -56,8 +58,8 @@ export async function fetchHostMetrics(): Promise<HostMetrics> {
     const payload = (await response.json()) as {
       data?: {
         status?: { hostname?: string }
-        cpu?: { total?: number }
-        mem?: { used?: number; total?: number }
+        cpu?: { total?: number; cpucore?: number }
+        mem?: { used?: number; total?: number; percent?: number }
         fs?: unknown
       }
       unavailable?: string[]
@@ -72,8 +74,10 @@ export async function fetchHostMetrics(): Promise<HostMetrics> {
       name: data.status?.hostname ?? hostLabelFromGatewayUrl(),
       online,
       cpuPercent: typeof data.cpu?.total === 'number' ? data.cpu.total : null,
+      cpuCores: typeof data.cpu?.cpucore === 'number' ? data.cpu.cpucore : null,
       ramUsedGb: typeof data.mem?.used === 'number' ? bytesToGb(data.mem.used) : null,
       ramTotalGb: typeof data.mem?.total === 'number' ? bytesToGb(data.mem.total) : null,
+      ramPercent: typeof data.mem?.percent === 'number' ? data.mem.percent : null,
       diskPercent: pickRootFs(data.fs),
       source: 'metrics-api',
       updatedAt: new Date().toISOString(),

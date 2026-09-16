@@ -14,6 +14,7 @@ import type {
   HealthSnapshot,
   HermesRun,
   HermesSkill,
+  HermesToolset,
   ReasoningEffort,
   RunStatus,
   StreamEvent,
@@ -46,6 +47,23 @@ function createId(prefix: string): string {
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : null
+}
+
+function normalizeHermesToolset(raw: Record<string, unknown>): HermesToolset | null {
+  const name = typeof raw.name === 'string' ? raw.name.trim() : ''
+  if (!name) return null
+  const tools = Array.isArray(raw.tools)
+    ? raw.tools.filter((item): item is string => typeof item === 'string')
+    : []
+  return {
+    id: name,
+    name,
+    label: typeof raw.label === 'string' && raw.label.trim() ? raw.label.trim() : name,
+    description: typeof raw.description === 'string' ? raw.description : '',
+    enabled: raw.enabled !== false,
+    configured: raw.configured !== false,
+    tools,
+  }
 }
 
 function normalizeHermesSkill(raw: Record<string, unknown>): HermesSkill | null {
@@ -248,6 +266,15 @@ export class GatewayClient {
         if (byCategory !== 0) return byCategory
         return a.name.localeCompare(b.name)
       })
+  }
+
+  async listHermesToolsets(): Promise<HermesToolset[]> {
+    const payload = await this.requestJson<{ data?: unknown }>('/v1/hermes/toolsets')
+    const list = Array.isArray(payload.data) ? payload.data : []
+    return list
+      .map((item) => normalizeHermesToolset(asRecord(item) ?? {}))
+      .filter((item): item is HermesToolset => item != null)
+      .sort((a, b) => a.name.localeCompare(b.name))
   }
 
   async listConversations(): Promise<Conversation[]> {

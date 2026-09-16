@@ -154,6 +154,16 @@ export interface HermesSkill {
   category: string
 }
 
+export interface HermesToolset {
+  id: string
+  name: string
+  label: string
+  description: string
+  enabled: boolean
+  configured: boolean
+  tools: string[]
+}
+
 export interface HealthSnapshot {
   hermes: ConnectionState
   llm: ConnectionState
