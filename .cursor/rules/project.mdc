@@ -8,7 +8,9 @@ alwaysApply: true
 - English only for code, docs, UI copy, commits, and PR text.
 - No inline comments. Prefer clear names and small modules.
 - Keep files focused; split stores, services, and UI by feature.
-- UI components use kebab-case filenames and shadcn primitives.
+- UI components use kebab-case filenames and stock shadcn primitives.
+- Never hand-edit `src/components/ui/*`; use `npx shadcn@latest add`.
+  Theme tokens only in `src/index.css`. Custom widgets stay outside `ui/`.
 - Remote I/O goes through `homelab-gateway` only; never call Hermes, Glances, or Codex exporters directly from the client.
 - Chat uses conversations + SSE (`model_id`, optional `reasoning_effort`). Never send raw `provider` / `model` / `model_options`.
 - Never put secrets in `VITE_*` env vars. Use `GATEWAY_API_KEY` at runtime (Vite proxy or Tauri).

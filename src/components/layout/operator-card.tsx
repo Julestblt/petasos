@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { GazeHero, type GazeState } from '@/components/ui/gaze-hero'
+import { GazeHero, type GazeState } from '@/components/gaze/gaze-hero'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,

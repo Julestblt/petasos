@@ -9,7 +9,13 @@ alwaysApply: false
 - One shell. Chat is the product; Status and Skills are secondary rooms.
 - Compose shadcn primitives from `src/components/ui`. Do not invent a
   parallel button, card, or menu.
-- Color, radius, and type come from CSS variables in `src/index.css`.
+- Never hand-edit `src/components/ui/*`. Add or update only via
+  `npx shadcn@latest add …` (use `--overwrite` when restoring stock).
+- Theme changes belong in `src/index.css` CSS variables only. Feature
+  code may pass layout `className` to primitives; do not fork colors,
+  radius, or typography inside `ui/`.
+- Custom widgets (GazeHero, ActionStream, ModelPicker) live outside
+  `src/components/ui/`.
 - GazeHero sits left of the operator name. Companion only; maps Hermes
   run state (`idle` / `attention` / `thinking` / `success`).
 - Sidebar is conversations-only; Status and Skills live in settings.

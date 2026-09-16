@@ -17,7 +17,8 @@ Working agreements:
 - Evolve docs and Cursor rules when the architecture changes
 - Prefer Tauri-friendly SPA patterns (no SSR)
 - Single shadcn shell; GazeHero is a companion only
-- Theme tokens live in `src/index.css`
+- Theme tokens live in `src/index.css`; never hand-edit `src/components/ui`
+
 
 Remote defaults:
 
@@ -30,3 +31,18 @@ Local sandbox (optional Docker only):
 
 - Hermes `http://127.0.0.1:8642`
 - Ollama `http://127.0.0.1:11434`
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues via `gh` (repo `Julestblt/petasos`). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default roles: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout (`CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.
+

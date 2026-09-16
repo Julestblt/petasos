@@ -117,7 +117,13 @@ export function ModelPicker({ disabled }: { disabled?: boolean }) {
         </Select>
       ) : null}
 
-      <CommandDialog open={open} onOpenChange={setOpen} title="Select model">
+      <CommandDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Select model"
+        description="Search providers and models"
+        showCloseButton={false}
+      >
         <CommandInput placeholder="Search provider or model…" />
         <CommandList>
           <CommandEmpty>No models found.</CommandEmpty>

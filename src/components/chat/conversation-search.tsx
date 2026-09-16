@@ -84,7 +84,13 @@ export function ConversationSearch() {
         </kbd>
       </Button>
 
-      <CommandDialog open={open} onOpenChange={setOpen} title="Search chats">
+      <CommandDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Search chats"
+        description="Find a conversation or start a new one"
+        showCloseButton={false}
+      >
         <CommandInput placeholder="Search chats…" />
         <CommandList>
           <CommandEmpty>No chats found.</CommandEmpty>

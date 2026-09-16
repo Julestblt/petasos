@@ -8,10 +8,12 @@ alwaysApply: false
 
 - Functional components only.
 - Compose from `src/components/ui` (shadcn) before inventing new controls.
+- Never hand-edit files under `src/components/ui`; update via the shadcn CLI.
 - Theme, radius, and color come from `src/index.css` CSS variables.
 - UI files use kebab-case (`operator-card.tsx`, `chat-page.tsx`).
 - Keep views thin; put orchestration in hooks/stores.
-- GazeHero is a companion in the sidebar footer. No click handlers for
-  navigation. Drive `state` from chat (`thinking` while sending).
+- GazeHero lives under `src/components/gaze/` (not `ui/`). Companion in the
+  sidebar footer. No click handlers for navigation. Drive `state` from chat
+  (`thinking` while sending).
 - Chat stream shows tool actions live via `ActionStream`.
 - One shell. Do not reintroduce a v1 / v2 split.
